@@ -1,0 +1,25 @@
+[package]
+name = "rustfoil"
+description = "Script that will allow you to generate an index file with Google Drive file links for use with Tinfoil"
+version = "0.1.0"
+authors = ["DevYukine <devyukine@gmx.de>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+structopt = "0.3"
+google-drive3 = "1.0.14"
+# This project intentionally uses an old version of Hyper. See
+# https://github.com/Byron/google-apis-rs/issues/173 for more
+# information.
+hyper = "^0.10"
+hyper-rustls = "^0.6"
+serde_json = "^1.0"
+yup-oauth2 = "^1.0"
+console = "^0.13.0"
+indicatif = "^0.15.0"
+reqwest = "^0.10.8"
+regex = "^1.4.1"
+serde = { version = "^1.0", features = ["derive"] }
+percent-encoding = "^2.1.0"
