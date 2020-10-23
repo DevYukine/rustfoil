@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize)]
 pub struct Index {
     pub files: Vec<FileEntry>,
+    #[serde(skip_serializing_if = "String::is_empty")]
     pub success: String,
 }
 
