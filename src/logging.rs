@@ -1,5 +1,4 @@
 use console::{style, Color, Term};
-use std::fmt;
 
 #[derive(Debug, PartialEq)]
 pub enum LogLevel {

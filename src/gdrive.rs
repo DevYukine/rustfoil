@@ -1,7 +1,5 @@
-use google_drive3::{DriveHub, File, FileListCall, Permission};
+use google_drive3::{DriveHub, File, Permission};
 use hyper::Client;
-use std::borrow::Borrow;
-use std::error::Error;
 use std::path::Path;
 use std::{error, fmt};
 use yup_oauth2::{Authenticator, DefaultAuthenticatorDelegate, DiskTokenStorage, FlowType};
