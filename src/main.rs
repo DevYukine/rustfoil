@@ -127,7 +127,24 @@ impl RustfoilService {
     pub fn output_index(&self, index: Index) {
         let json = serde_json::to_string(&index).unwrap();
 
-        std::fs::write(&self.input.output_path, json).expect("Couldn't write output file to Path");
+        std::fs::write(
+            &self.input.output_path,
+            &self.input.compression.compress(json.as_str()),
+        )
+        .expect("Couldn't write output file to Path");
+
+        self.logger.log_info(
+            format!(
+                "Finished writing {} to disk",
+                self.input
+                    .output_path
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+            )
+            .as_str(),
+        )
     }
 
     fn scan_folder(&mut self) -> Vec<ParsedFileInfo> {

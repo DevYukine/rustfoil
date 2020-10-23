@@ -20,3 +20,17 @@ impl FromStr for Compression {
         }
     }
 }
+
+impl Compression {
+    pub fn compress(&self, data: &str) -> Vec<u8> {
+        match &self {
+            Compression::Off => data.as_bytes().to_vec(),
+            Compression::ZSTD => zstd::block::compress(data.as_bytes(), 22).unwrap().clone(),
+            Compression::Zlib => {
+                let mut encoder = ZlibEncoder::new(Vec::new(), flate2::Compression::best());
+                encoder.write_all(data.as_ref());
+                encoder.finish().unwrap().clone()
+            }
+        }
+    }
+}
