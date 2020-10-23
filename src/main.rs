@@ -1,29 +1,22 @@
 #[cfg_attr(test, macro_use)]
 extern crate structopt;
 
-use crate::gdrive::FileInfo;
-use crate::index::FileEntry;
+use crate::index::ParsedFileInfo;
 use compression::Compression;
-use console::{style, Term};
 use gdrive::GDriveService;
+use index::FileEntry;
 use index::Index;
 use indicatif::{ProgressBar, ProgressStyle};
-use logging::LogLevel::Error;
 use logging::Logger;
-use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use regex::Regex;
-use std::cmp::min;
-use std::io::{Empty, ErrorKind, Write};
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
-use std::thread;
-use std::time::Duration;
+use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod compression;
 mod gdrive;
 mod index;
 mod logging;
+mod util;
 
 /// Script that will allow you to generate an index file with Google Drive file links for use with Tinfoil
 #[derive(StructOpt, Debug)]
@@ -85,7 +78,6 @@ pub struct RustfoilService {
     logger: Logger,
     input: Input,
     gdrive: GDriveService,
-    index: Index,
 }
 
 impl RustfoilService {
@@ -96,7 +88,6 @@ impl RustfoilService {
             input,
             logger: Logger::new(),
             gdrive: GDriveService::new(credentials.as_path(), token.as_path()),
-            index: Index::new(),
         }
     }
 
@@ -109,26 +100,41 @@ impl RustfoilService {
         true
     }
 
-    pub fn generate_index(&mut self) {
+    pub fn generate_index(&mut self) -> Index {
+        let mut index = Index::new();
+
         let files = self.scan_folder();
 
         for info in files {
-            self.index.files.push(FileEntry::new(
-                format!(
-                    "gdrive:{}#{}",
-                    info.id,
-                    utf8_percent_encode(&*info.name, NON_ALPHANUMERIC)
-                ),
+            index.files.push(FileEntry::new(
+                format!("gdrive:{}#{}", info.id, info.name_encoded),
                 u64::from_str_radix(&*info.size, 10).unwrap(),
             ));
         }
+
+        self.logger.log_info("Added files to index");
+
+        if self.input.success.is_some() {
+            index.success = self.input.success.clone().unwrap();
+            self.logger.log_info("Added success message to index")
+        }
+
+        self.logger.log_info("Generated index successfully");
+
+        index
     }
 
-    fn scan_folder(&mut self) -> Vec<FileInfo> {
-        let re = Regex::new("\\[[0-9A-Fa-f]{16}\\]");
+    pub fn output_index(&self, index: Index) {
+        let json = serde_json::to_string(&index).unwrap();
+
+        std::fs::write(&self.input.output_path, json).expect("Couldn't write output file to Path");
+    }
+
+    fn scan_folder(&mut self) -> Vec<ParsedFileInfo> {
+        let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D").unwrap();
 
         // Trigger Authentication if needed
-        let files = self.gdrive.trigger_auth();
+        self.gdrive.trigger_auth();
 
         let pb = ProgressBar::new(!0);
         pb.enable_steady_tick(130);
@@ -140,9 +146,33 @@ impl RustfoilService {
                 .template("{spinner:.blue} {msg}"),
         );
         pb.set_message("Scanning...");
-        let files = self
+
+        let files: Vec<ParsedFileInfo> = self
             .gdrive
-            .get_all_files_in_folder(&self.input.folder_id, !self.input.no_recursion);
+            .get_all_files_in_folder(&self.input.folder_id, !self.input.no_recursion)
+            .into_iter()
+            .map(|file_info| ParsedFileInfo::new(file_info))
+            .filter(|file| {
+                let mut keep = true;
+
+                if !self.input.add_non_nsw_files {
+                    let extension: String = file
+                        .name
+                        .chars()
+                        .skip(file.name.len() - 4)
+                        .take(4)
+                        .collect();
+
+                    keep = vec![".nsp", ".nsz", ".xci", ".xcz"].contains(&&*extension);
+                }
+
+                if !self.input.add_nsw_files_without_title_id {
+                    keep = re.is_match(file.name_encoded.as_str());
+                }
+
+                keep
+            })
+            .collect();
 
         pb.finish_with_message(&*format!("Scanned {} files", files.len()));
 
@@ -164,7 +194,9 @@ fn real_main() -> bool {
         return false;
     }
 
-    service.generate_index();
+    let index = service.generate_index();
+
+    service.output_index(index);
 
     true
 }
