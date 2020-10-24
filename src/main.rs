@@ -2,7 +2,6 @@
 extern crate structopt;
 
 use crate::encryption::EncryptionFlag;
-use crate::encryption::EncryptionFlag::Encrypt;
 use crate::index::ParsedFileInfo;
 use crate::tinfoil::convert_to_tinfoil_format;
 use compression::CompressionFlag;
@@ -12,7 +11,6 @@ use index::Index;
 use indicatif::{ProgressBar, ProgressStyle};
 use logging::Logger;
 use regex::Regex;
-use std::borrow::Borrow;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -158,6 +156,8 @@ impl RustfoilService {
         )
     }
 
+    pub fn share_files(&self) {}
+
     fn scan_folder(&mut self) -> Vec<ParsedFileInfo> {
         let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D").unwrap();
 
@@ -216,6 +216,7 @@ pub fn main() {
 }
 
 fn real_main() -> bool {
+    // TODO: do validate checks before or move gdrive hub construction to later point so it doesn't trigger panics when credentials are missing
     let mut service = RustfoilService::new(Input::from_args());
 
     if !service.validate_input() {
