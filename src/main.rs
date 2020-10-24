@@ -1,21 +1,27 @@
 #[cfg_attr(test, macro_use)]
 extern crate structopt;
 
+use crate::encryption::EncryptionFlag;
+use crate::encryption::EncryptionFlag::Encrypt;
 use crate::index::ParsedFileInfo;
-use compression::Compression;
+use crate::tinfoil::convert_to_tinfoil_format;
+use compression::CompressionFlag;
 use gdrive::GDriveService;
 use index::FileEntry;
 use index::Index;
 use indicatif::{ProgressBar, ProgressStyle};
 use logging::Logger;
 use regex::Regex;
+use std::borrow::Borrow;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
 mod compression;
+mod encryption;
 mod gdrive;
 mod index;
 mod logging;
+mod tinfoil;
 mod util;
 
 /// Script that will allow you to generate an index file with Google Drive file links for use with Tinfoil
@@ -67,7 +73,7 @@ pub struct Input {
 
     /// Which compression should be used for the index file
     #[structopt(long, default_value = "zstd")]
-    compression: Compression,
+    compression: CompressionFlag,
 
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
@@ -126,10 +132,15 @@ impl RustfoilService {
 
     pub fn output_index(&self, index: Index) {
         let json = serde_json::to_string(&index).unwrap();
+        let compression = &self.input.compression;
 
         std::fs::write(
             &self.input.output_path,
-            &self.input.compression.compress(json.as_str()),
+            convert_to_tinfoil_format(
+                compression.compress(json.as_str()),
+                compression.clone(),
+                EncryptionFlag::NoEncrypt,
+            ),
         )
         .expect("Couldn't write output file to Path");
 
