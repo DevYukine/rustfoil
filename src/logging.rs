@@ -61,7 +61,7 @@ impl Logger {
         }
 
         std.write_line(&*format!(
-            "[{}]: {}",
+            "[{}] {}",
             style(level.to_string()).fg(match level {
                 LogLevel::Trace => Color::White,
                 LogLevel::Debug => Color::Blue,
