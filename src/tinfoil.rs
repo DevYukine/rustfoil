@@ -17,7 +17,7 @@ pub fn convert_to_tinfoil_format(
     bytes.write(b"TINFOIL");
     bytes.write(flag.to_le_bytes().borrow());
     bytes.write(session_key.as_slice());
-    bytes.write(&data_length.to_le_bytes());
+    bytes.write(data_length.to_le_bytes().borrow());
     bytes.write(data.borrow());
     bytes.write(b"\x00".repeat(0x10 - (data_length % 0x10)).as_slice());
 
