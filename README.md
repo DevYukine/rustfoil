@@ -41,3 +41,7 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 
 - [ ] Share files inside index
 - [ ] Share uploaded index
+
+### Error Handling
+
+- [ ] Retry gdrive exceptions
