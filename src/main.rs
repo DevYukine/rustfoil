@@ -1,19 +1,18 @@
 #[cfg_attr(test, macro_use)]
 extern crate structopt;
 
-use crate::encryption::EncryptionFlag;
-use crate::index::ParsedFileInfo;
-use crate::tinfoil::convert_to_tinfoil_format;
 use compression::CompressionFlag;
+use encryption::EncryptionFlag;
 use gdrive::GDriveService;
 use index::FileEntry;
 use index::Index;
+use index::ParsedFileInfo;
 use indicatif::{ProgressBar, ProgressStyle};
 use logging::Logger;
 use regex::Regex;
-use std::borrow::Borrow;
 use std::path::PathBuf;
 use structopt::StructOpt;
+use tinfoil::convert_to_tinfoil_format;
 
 mod compression;
 mod encryption;
@@ -62,6 +61,38 @@ pub struct Input {
     #[structopt(long)]
     success: Option<String>,
 
+    /// Adds a referrer to index file to prevent others from hotlinking
+    #[structopt(long)]
+    referrer: Option<String>,
+
+    /// Adds a google API key to be used with all gdrive:/ requests
+    #[structopt(long)]
+    google_api_key: Option<String>,
+
+    /// Adds 1Fincher API keys to be used with all 1f:/ requests, If multiple keys are provided, Tinfoil keeps trying them until it finds one that works
+    #[structopt(long)]
+    one_fichier_keys: Option<Vec<String>>,
+
+    /// Adds custom HTTP headers Tinfoil should send with its requests
+    #[structopt(long)]
+    headers: Option<Vec<String>>,
+
+    /// Adds a minimum Tinfoil version to load the index
+    #[structopt(long)]
+    min_version: Option<String>,
+
+    /// Adds a list of themes to blacklist based on their hash
+    #[structopt(long)]
+    theme_blacklist: Option<Vec<String>>,
+
+    /// Adds a list of themes to whitelist based on their hash
+    #[structopt(long)]
+    theme_whitelist: Option<Vec<String>>,
+
+    /// Adds a custom theme error message to the index
+    #[structopt(long)]
+    theme_error: Option<String>,
+
     /// Path to RSA Public Key to encrypt AES-ECB-256 key with
     #[structopt(long)]
     public_key: Option<PathBuf>,
@@ -105,21 +136,65 @@ impl RustfoilService {
         true
     }
 
-    pub fn generate_index(&mut self, files: Vec<ParsedFileInfo>) -> Index {
-        let mut index = Index::new();
+    pub fn generate_index(&mut self, files: Vec<ParsedFileInfo>) -> Box<Index> {
+        let mut index = Box::new(Index::new());
+
+        let mut index_files: Vec<FileEntry> = Vec::new();
 
         for info in files {
-            index.files.push(FileEntry::new(
+            index_files.push(FileEntry::new(
                 format!("gdrive:{}#{}", info.id, info.name_encoded),
                 u64::from_str_radix(&*info.size, 10).unwrap(),
             ));
         }
 
+        index.files = Some(index_files);
+
         self.logger.log_info("Added files to index");
 
         if self.input.success.is_some() {
-            index.success = self.input.success.clone().unwrap();
-            self.logger.log_info("Added success message to index")
+            index.success = Some(self.input.success.clone().unwrap());
+            self.logger.log_info("Added success message to index");
+        }
+
+        if self.input.referrer.is_some() {
+            index.referrer = Some(self.input.referrer.clone().unwrap());
+            self.logger.log_info("Added referrer to index");
+        }
+
+        if self.input.google_api_key.is_some() {
+            index.google_api_key = Some(self.input.google_api_key.clone().unwrap());
+            self.logger.log_info("Added google api key to index");
+        }
+
+        if self.input.one_fichier_keys.is_some() {
+            index.one_fichier_keys = Some(self.input.one_fichier_keys.clone().unwrap());
+            self.logger.log_info("Added 1Fichier keys to index");
+        }
+
+        if self.input.headers.is_some() {
+            index.headers = Some(self.input.headers.clone().unwrap());
+            self.logger.log_info("Added headers to index");
+        }
+
+        if self.input.min_version.is_some() {
+            index.version = Some(self.input.min_version.clone().unwrap());
+            self.logger.log_info("Added minimum version to index");
+        }
+
+        if self.input.theme_blacklist.is_some() {
+            index.theme_blacklist = Some(self.input.theme_blacklist.clone().unwrap());
+            self.logger.log_info("Added theme blacklist to index");
+        }
+
+        if self.input.theme_whitelist.is_some() {
+            index.theme_whitelist = Some(self.input.theme_whitelist.clone().unwrap());
+            self.logger.log_info("Added theme whitelist to index");
+        }
+
+        if self.input.theme_error.is_some() {
+            index.theme_error = Some(self.input.theme_error.clone().unwrap());
+            self.logger.log_info("Added theme error message to index");
         }
 
         self.logger.log_info("Generated index successfully");
@@ -158,9 +233,11 @@ impl RustfoilService {
     pub fn share_files(&self, files: Vec<ParsedFileInfo>) {
         let pb = ProgressBar::new(files.len() as u64);
 
-        pb.set_style(ProgressStyle::default_bar()
-		    .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
-		    .progress_chars("#>-"));
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+                .progress_chars("#>-"),
+        );
 
         for file in &files {
             if !file.shared {
@@ -241,7 +318,7 @@ fn real_main() -> bool {
 
     let index = service.generate_index(files.to_owned());
 
-    service.output_index(index);
+    service.output_index(*index);
 
     if service.input.share_files {
         service.share_files(files);
