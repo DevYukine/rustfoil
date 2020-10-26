@@ -30,6 +30,7 @@ impl FileEntry {
     }
 }
 
+#[derive(Clone)]
 pub struct ParsedFileInfo {
     pub id: String,
     pub size: String,

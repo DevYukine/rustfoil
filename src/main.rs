@@ -11,6 +11,7 @@ use index::Index;
 use indicatif::{ProgressBar, ProgressStyle};
 use logging::Logger;
 use regex::Regex;
+use std::borrow::Borrow;
 use std::path::PathBuf;
 use structopt::StructOpt;
 
@@ -104,10 +105,8 @@ impl RustfoilService {
         true
     }
 
-    pub fn generate_index(&mut self) -> Index {
+    pub fn generate_index(&mut self, files: Vec<ParsedFileInfo>) -> Index {
         let mut index = Index::new();
-
-        let files = self.scan_folder();
 
         for info in files {
             index.files.push(FileEntry::new(
@@ -156,9 +155,24 @@ impl RustfoilService {
         )
     }
 
-    pub fn share_files(&self) {}
+    pub fn share_files(&self, files: Vec<ParsedFileInfo>) {
+        let pb = ProgressBar::new(files.len() as u64);
 
-    fn scan_folder(&mut self) -> Vec<ParsedFileInfo> {
+        pb.set_style(ProgressStyle::default_bar()
+		    .template("{spinner:.green} [{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+		    .progress_chars("#>-"));
+
+        for file in &files {
+            if !file.shared {
+                self.gdrive.share_file(file.id.as_str())
+            }
+            pb.inc(1);
+        }
+
+        pb.finish_with_message(format!("Shared {} files", files.len()).as_str());
+    }
+
+    pub fn scan_folder(&mut self) -> Vec<ParsedFileInfo> {
         let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D").unwrap();
 
         // Trigger Authentication if needed
@@ -223,9 +237,15 @@ fn real_main() -> bool {
         return false;
     }
 
-    let index = service.generate_index();
+    let files = service.scan_folder();
+
+    let index = service.generate_index(files.to_owned());
 
     service.output_index(index);
+
+    if service.input.share_files {
+        service.share_files(files);
+    }
 
     true
 }
