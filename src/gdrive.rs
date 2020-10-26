@@ -192,7 +192,7 @@ impl GDriveService {
     }
 
     pub fn get_all_files_in_folder(&self, folder_id: &str, recursion: bool) -> Vec<FileInfo> {
-        let mut files: Vec<FileInfo> = Vec::new();
+        let mut files = Vec::new();
 
         for file in self.lsf(folder_id).unwrap() {
             if file.size.is_some() {
