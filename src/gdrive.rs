@@ -219,7 +219,7 @@ impl GDriveService {
         files
     }
 
-    pub fn share_files(&self, file_id: &str) {
+    pub fn share_file(&self, file_id: &str) {
         let mut perms = Permission::default();
         perms.role = Option::from("reader".to_string());
         perms.type_ = Option::from("anyone".to_string());
