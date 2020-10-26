@@ -1,4 +1,4 @@
-use google_drive3::{DriveHub, File, Permission};
+use google_drive3::{DriveHub, File, Permission, Scope};
 use hyper::Client;
 use std::path::Path;
 use std::{error, fmt};
@@ -74,7 +74,7 @@ impl GDriveService {
     }
 
     pub fn ls(&self, folder_id: &str, search_terms: Option<&str>) -> Result<Vec<File>, DriveError> {
-        let mut files: Vec<File> = Vec::new();
+        let mut files = Vec::new();
 
         let mut page_token: Option<String> = None;
 
