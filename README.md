@@ -14,7 +14,7 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 - credentials.json (you can modify location & name with `--credentials` flag) It can be obtained from [here](https://developers.google.com/drive/api/v3/quickstart/python) by clicking the Enable Drive API button in there while being signed in with the user account you want to generate credentials for or from Google's Developer Console.
 - Google Drive Folder IDs to scan and index
 
-## Features
+## (Planned) Features
 
 ### Index
 
