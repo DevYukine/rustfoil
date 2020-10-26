@@ -39,7 +39,7 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 
 ### Share Files
 
-- [ ] Share files inside index
+- [x] Share files inside index
 - [ ] Share uploaded index
 
 ### Error Handling
