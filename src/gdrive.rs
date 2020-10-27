@@ -1,13 +1,11 @@
 use google_drive3::Scope::Full;
 use google_drive3::{
-    About, AboutGetCall, DriveHub, Error, File, FileList, FileListCall, Permission,
-    PermissionCreateCall, PermissionDeleteCall, Scope,
+    About, DriveHub, Error, File, FileList, FileListCall, Permission, PermissionCreateCall,
+    PermissionDeleteCall, Scope,
 };
 use hyper::client::Response;
 use hyper::Client;
-use std::borrow::{Borrow, BorrowMut};
 use std::path::Path;
-use std::rc::Rc;
 use yup_oauth2::{Authenticator, DefaultAuthenticatorDelegate, DiskTokenStorage, FlowType};
 
 trait ScopedRequest<'a, A, B> {
