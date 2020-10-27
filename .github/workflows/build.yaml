@@ -2,48 +2,85 @@ on: [push, pull_request, release]
 
 name: Build
 
+env:
+    CARGO_TERM_COLOR: always
+
 jobs:
-    build:
-        name: Build
+    ubuntu:
+        name: Linux Build
         runs-on: ubuntu-latest
         strategy:
             matrix:
                 target:
-                    - i686-pc-windows-gnu
-                    - i686-unknown-linux-gnu
-                    - x86_64-apple-darwin
-                    - x86_64-pc-windows-gnu
-                    - x86_64-unknown-linux-gnu
+                    - name: i686-unknown-linux-gnu
+                      arch: x86
+                    - name: x86_64-unknown-linux-gnu
+                      arch: x64
         steps:
             - uses: actions/checkout@v2
+              name: Checkout Source code
+            - name: Cache Rust dependencies
+              uses: actions/cache@v2
+              with:
+                  path: |
+                      ~/.cargo/registry
+                      ~/.cargo/git
+                      target
+                  key: ${{ matrix.target.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
             - uses: actions-rs/toolchain@v1
               with:
                   toolchain: stable
-                  target: ${{ matrix.target }}
+                  target: ${{ matrix.target.name }}
                   override: true
-            - name: Install x86 Build Dependencies
-              if: ${{ matrix.target == 'i686-pc-windows-gnu' || matrix.target == 'i686-unknown-linux-gnu' }}
-              run: sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install libssl-dev:i386 clang
-            - name: Install x86_64 Build Dependencies
-              if: ${{ matrix.target != 'i686-pc-windows-gnu' && matrix.target != 'i686-unknown-linux-gnu' }}
-              run: sudo apt-get update && sudo apt-get install pkg-config libssl-dev clang
-            - name: Build x86
+            - name: Install Build-Tools
+              run: sudo apt-get install build-essential gcc-multilib
+            - name: Build
               uses: actions-rs/cargo@v1
-              if: ${{ matrix.target == 'i686-pc-windows-gnu' || matrix.target == 'i686-unknown-linux-gnu' }}
               env:
                   TARGET_CC: clang
-                  OPENSSL_LIB_DIR: /usr/lib/i386-linux-gnu
-                  OPENSSL_INCLUDE_DIR: /usr/include/i386-linux-gnu/openssl
               with:
-                  use-cross: true
                   command: build
-                  args: --release --target=${{ matrix.target }}
-            - name: Build x86_64
-              uses: actions-rs/cargo@v1
-              if: ${{ matrix.target != 'i686-pc-windows-gnu' && matrix.target != 'i686-unknown-linux-gnu' }}
-              env:
-                TARGET_CC: clang
+                  args: --release --target=${{ matrix.target.name }}
+            - uses: actions/upload-artifact@v2
+              name: Upload Artifact
               with:
-                use-cross: true
-                command: build
-                args: --release --target=${{ matrix.target }}
+                  name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
+                  path: target/${{ matrix.target.name }}/release/rustfoil
+
+
+
+    windows:
+        name: Windows Build
+        runs-on: windows-latest
+        strategy:
+            matrix:
+                target:
+                    - name: i686-pc-windows-msvc
+                      arch: x86
+                    - name: x86_64-pc-windows-msvc
+                      arch: x64
+        steps:
+            - uses: actions/checkout@v2
+            - name: Cache Rust dependencies
+              uses: actions/cache@v2
+              with:
+                  path: |
+                      ~/.cargo/registry
+                      ~/.cargo/git
+                      target
+                  key: ${{ matrix.target.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            - uses: actions-rs/toolchain@v1
+              with:
+                  toolchain: stable
+                  target: ${{ matrix.target.name }}
+                  override: true
+            - name: Build
+              uses: actions-rs/cargo@v1
+              with:
+                  command: build
+                  args: --release --target=${{ matrix.target.name }}
+            - uses: actions/upload-artifact@v2
+              name: Upload Artifact
+              with:
+                  name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
+                  path: target/${{ matrix.target.name }}/release/rustfoil.exe
