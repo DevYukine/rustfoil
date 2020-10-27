@@ -219,13 +219,19 @@ impl RustfoilService {
 
         self.logger.log_info(
             format!(
-                "Finished writing {} to disk",
+                "Finished writing {} to disk{}",
                 self.input
                     .output_path
                     .file_name()
                     .unwrap()
                     .to_str()
-                    .unwrap()
+                    .unwrap(),
+                compression = match compression {
+                    CompressionFlag::Off => "".to_string(),
+                    CompressionFlag::ZSTD | CompressionFlag::Zlib => {
+                        format!(", using compression \"{}\"", compression).to_string()
+                    }
+                }
             )
             .as_str(),
         );
