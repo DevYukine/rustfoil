@@ -3,6 +3,7 @@ extern crate structopt;
 
 use compression::CompressionFlag;
 use encryption::EncryptionFlag;
+use error::RustfoilError;
 use gdrive::GDriveService;
 use index::FileEntry;
 use index::Index;
@@ -16,11 +17,12 @@ use tinfoil::convert_to_tinfoil_format;
 
 mod compression;
 mod encryption;
+mod error;
 mod gdrive;
 mod index;
 mod logging;
+mod result;
 mod tinfoil;
-mod util;
 
 /// Script that will allow you to generate an index file with Google Drive file links for use with Tinfoil
 #[derive(StructOpt, Debug)]
@@ -127,16 +129,15 @@ impl RustfoilService {
         }
     }
 
-    pub fn validate_input(&self) -> bool {
+    pub fn validate_input(&self) -> std::result::Result<(), RustfoilError> {
         if !&self.input.credentials.exists() {
-            &self.logger.log_error("Credentials file is missing!");
-            false;
+            return Err(RustfoilError::CredentialsMissing);
         }
 
-        true
+        Ok(())
     }
 
-    pub fn generate_index(&mut self, files: Vec<ParsedFileInfo>) -> Box<Index> {
+    pub fn generate_index(&mut self, files: Vec<ParsedFileInfo>) -> result::Result<Box<Index>> {
         let mut index = Box::new(Index::new());
 
         let mut index_files: Vec<FileEntry> = Vec::new();
@@ -144,7 +145,7 @@ impl RustfoilService {
         for info in files {
             index_files.push(FileEntry::new(
                 format!("gdrive:{}#{}", info.id, info.name_encoded),
-                u64::from_str_radix(&*info.size, 10).unwrap(),
+                u64::from_str_radix(&*info.size, 10)?,
             ));
         }
 
@@ -199,20 +200,20 @@ impl RustfoilService {
 
         self.logger.log_info("Generated index successfully");
 
-        index
+        Ok(index)
     }
 
-    pub fn output_index(&self, index: Index) {
-        let json = serde_json::to_string(&index).unwrap();
+    pub fn output_index(&self, index: Index) -> result::Result<()> {
+        let json = serde_json::to_string(&index)?;
         let compression = &self.input.compression;
 
         std::fs::write(
             &self.input.output_path,
             convert_to_tinfoil_format(
-                compression.compress(json.as_str()),
+                compression.compress(json.as_str())?,
                 compression.clone(),
                 EncryptionFlag::NoEncrypt,
-            ),
+            )?,
         )
         .expect("Couldn't write output file to Path");
 
@@ -227,10 +228,12 @@ impl RustfoilService {
                     .unwrap()
             )
             .as_str(),
-        )
+        );
+
+        Ok(())
     }
 
-    pub fn share_files(&self, files: Vec<ParsedFileInfo>) {
+    pub fn share_files(&self, files: Vec<ParsedFileInfo>) -> result::Result<()> {
         let pb = ProgressBar::new(files.len() as u64);
 
         pb.set_style(
@@ -241,16 +244,18 @@ impl RustfoilService {
 
         for file in &files {
             if !file.shared {
-                self.gdrive.share_file(file.id.as_str())
+                self.gdrive.share_file(file.id.as_str());
             }
             pb.inc(1);
         }
 
         pb.finish_with_message(format!("Shared {} files", files.len()).as_str());
+
+        Ok(())
     }
 
-    pub fn scan_folder(&mut self) -> Vec<ParsedFileInfo> {
-        let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D").unwrap();
+    pub fn scan_folder(&mut self) -> result::Result<Vec<ParsedFileInfo>> {
+        let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D")?;
 
         // Trigger Authentication if needed
         self.gdrive.trigger_auth();
@@ -269,6 +274,7 @@ impl RustfoilService {
         let files: Vec<ParsedFileInfo> = self
             .gdrive
             .get_all_files_in_folder(&self.input.folder_id, !self.input.no_recursion)
+            .unwrap()
             .into_iter()
             .map(|file_info| ParsedFileInfo::new(file_info))
             .filter(|file| {
@@ -295,34 +301,32 @@ impl RustfoilService {
 
         pb.finish_with_message(&*format!("Scanned {} files", files.len()));
 
-        files
+        Ok(files)
     }
 }
 
 pub fn main() {
     match real_main() {
-        true => std::process::exit(0),
-        false => std::process::exit(1),
+        Ok(_) => std::process::exit(0),
+        Err(_) => std::process::exit(1),
     }
 }
 
-fn real_main() -> bool {
+fn real_main() -> result::Result<()> {
     // TODO: do validate checks before or move gdrive hub construction to later point so it doesn't trigger panics when credentials are missing
     let mut service = RustfoilService::new(Input::from_args());
 
-    if !service.validate_input() {
-        return false;
-    }
+    service.validate_input()?;
 
-    let files = service.scan_folder();
+    let files = service.scan_folder()?;
 
-    let index = service.generate_index(files.to_owned());
+    let index = service.generate_index(files.to_owned())?;
 
-    service.output_index(*index);
+    service.output_index(*index)?;
 
     if service.input.share_files {
-        service.share_files(files);
+        service.share_files(files)?;
     }
 
-    true
+    Ok(())
 }
