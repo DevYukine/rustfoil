@@ -22,14 +22,14 @@ jobs:
                   target: ${{ matrix.target }}
                   override: true
             - name: Install x86 Build Dependencies
-              if: ${{ matrix.target == i686-pc-windows-gnu || matrix.target == i686-unknown-linux-gnu }}
+              if: ${{ matrix.target == "i686-pc-windows-gnu" || matrix.target == "i686-unknown-linux-gnu" }}
               run: sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install libssl-dev:i386 clang
             - name: Install x86_64 Build Dependencies
-              if: ${{ matrix.target != i686-pc-windows-gnu && matrix.target != i686-unknown-linux-gnu }}
+              if: ${{ matrix.target != "i686-pc-windows-gnu" && matrix.target != "i686-unknown-linux-gnu" }}
               run: sudo apt-get update && sudo apt-get install pkg-config libssl-dev clang
             - name: Build x86
               uses: actions-rs/cargo@v1
-              if: ${{ matrix.target == i686-pc-windows-gnu || matrix.target == i686-unknown-linux-gnu }}
+              if: ${{ matrix.target == "i686-pc-windows-gnu" || matrix.target == "i686-unknown-linux-gnu" }}
               env:
                   TARGET_CC: clang
                   OPENSSL_LIB_DIR: /usr/lib/i386-linux-gnu
@@ -40,7 +40,7 @@ jobs:
                   args: --release --target=${{ matrix.target }}
             - name: Build x86_64
               uses: actions-rs/cargo@v1
-              if: ${{ matrix.target != i686-pc-windows-gnu && matrix.target != i686-unknown-linux-gnu }}
+              if: ${{ matrix.target != "i686-pc-windows-gnu" && matrix.target != "i686-unknown-linux-gnu" }}
               env:
                 - TARGET_CC: clang
               with:
