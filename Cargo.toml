@@ -27,3 +27,5 @@ zstd = "^0.5.3"
 flate2 = "^1.0.18"
 anyhow = "^1.0"
 thiserror = "^1.0"
+openssl = { version = "^0.10", features = ["vendored"] }
+openssl-probe = "^0.1.2"
