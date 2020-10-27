@@ -27,7 +27,8 @@ jobs:
             - name: Install x86_64 Build Dependencies
               if: ${{ matrix.target != i686-pc-windows-gnu && matrix.target != i686-unknown-linux-gnu }}
               run: sudo apt-get update && sudo apt-get install pkg-config libssl-dev clang
-            - uses: actions-rs/cargo@v1
+            - name: Build x86
+              uses: actions-rs/cargo@v1
               if: ${{ matrix.target == i686-pc-windows-gnu || matrix.target == i686-unknown-linux-gnu }}
               env:
                   - TARGET_CC: clang
@@ -37,7 +38,8 @@ jobs:
                   use-cross: true
                   command: build
                   args: --release --target=${{ matrix.target }}
-            - uses: actions-rs/cargo@v1
+            - name: Build x86_64
+              uses: actions-rs/cargo@v1
               if: ${{ matrix.target != i686-pc-windows-gnu && matrix.target != i686-unknown-linux-gnu }}
               env:
                 - TARGET_CC: clang
