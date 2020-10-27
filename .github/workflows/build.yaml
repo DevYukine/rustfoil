@@ -23,8 +23,10 @@ jobs:
                   override: true
             - name: Install libssl-dev & pkg-config
               run: sudo apt-get install pkg-config libssl-dev
+            - name: Install Clang
+              run: sudo apt install clang
             - uses: actions-rs/cargo@v1
               with:
                   use-cross: true
-                  command: build
+                  command: TARGET_CC=clang build
                   args: --release --target=${{ matrix.target }}
