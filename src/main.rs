@@ -151,51 +151,51 @@ impl RustfoilService {
 
         index.files = Some(index_files);
 
-        self.logger.log_info("Added files to index");
+        self.logger.log_debug("Added files to index");
 
         if self.input.success.is_some() {
             index.success = Some(self.input.success.clone().unwrap());
-            self.logger.log_info("Added success message to index");
+            self.logger.log_debug("Added success message to index");
         }
 
         if self.input.referrer.is_some() {
             index.referrer = Some(self.input.referrer.clone().unwrap());
-            self.logger.log_info("Added referrer to index");
+            self.logger.log_debug("Added referrer to index");
         }
 
         if self.input.google_api_key.is_some() {
             index.google_api_key = Some(self.input.google_api_key.clone().unwrap());
-            self.logger.log_info("Added google api key to index");
+            self.logger.log_debug("Added google api key to index");
         }
 
         if self.input.one_fichier_keys.is_some() {
             index.one_fichier_keys = Some(self.input.one_fichier_keys.clone().unwrap());
-            self.logger.log_info("Added 1Fichier keys to index");
+            self.logger.log_debug("Added 1Fichier keys to index");
         }
 
         if self.input.headers.is_some() {
             index.headers = Some(self.input.headers.clone().unwrap());
-            self.logger.log_info("Added headers to index");
+            self.logger.log_debug("Added headers to index");
         }
 
         if self.input.min_version.is_some() {
             index.version = Some(self.input.min_version.clone().unwrap());
-            self.logger.log_info("Added minimum version to index");
+            self.logger.log_debug("Added minimum version to index");
         }
 
         if self.input.theme_blacklist.is_some() {
             index.theme_blacklist = Some(self.input.theme_blacklist.clone().unwrap());
-            self.logger.log_info("Added theme blacklist to index");
+            self.logger.log_debug("Added theme blacklist to index");
         }
 
         if self.input.theme_whitelist.is_some() {
             index.theme_whitelist = Some(self.input.theme_whitelist.clone().unwrap());
-            self.logger.log_info("Added theme whitelist to index");
+            self.logger.log_debug("Added theme whitelist to index");
         }
 
         if self.input.theme_error.is_some() {
             index.theme_error = Some(self.input.theme_error.clone().unwrap());
-            self.logger.log_info("Added theme error message to index");
+            self.logger.log_debug("Added theme error message to index");
         }
 
         self.logger.log_info("Generated index successfully");
