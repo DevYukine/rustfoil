@@ -21,11 +21,26 @@ jobs:
                   toolchain: stable
                   target: ${{ matrix.target }}
                   override: true
-            - name: Install Build Dependencies
+            - name: Install x86 Build Dependencies
+              if: ${{ matrix.target == i686-pc-windows-gnu || matrix.target == i686-unknown-linux-gnu }}
+              run: sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install libssl-dev:i386 clang
+            - name: Install x86_64 Build Dependencies
+              if: ${{ matrix.target != i686-pc-windows-gnu && matrix.target != i686-unknown-linux-gnu }}
               run: sudo apt-get update && sudo apt-get install pkg-config libssl-dev clang
             - uses: actions-rs/cargo@v1
+              if: ${{ matrix.target == i686-pc-windows-gnu || matrix.target == i686-unknown-linux-gnu }}
               env:
-                TARGET_CC: clang
+                  - TARGET_CC: clang
+                  - OPENSSL_LIB_DIR: /usr/lib/i386-linux-gnu
+                  - OPENSSL_INCLUDE_DIR: /usr/include/i386-linux-gnu/openssl
+              with:
+                  use-cross: true
+                  command: build
+                  args: --release --target=${{ matrix.target }}
+            - uses: actions-rs/cargo@v1
+              if: ${{ matrix.target != i686-pc-windows-gnu && matrix.target != i686-unknown-linux-gnu }}
+              env:
+                - TARGET_CC: clang
               with:
                 use-cross: true
                 command: build
