@@ -42,7 +42,7 @@ jobs:
               uses: actions-rs/cargo@v1
               if: ${{ matrix.target != 'i686-pc-windows-gnu' && matrix.target != 'i686-unknown-linux-gnu' }}
               env:
-                - TARGET_CC: clang
+                TARGET_CC: clang
               with:
                 use-cross: true
                 command: build
