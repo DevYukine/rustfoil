@@ -21,13 +21,12 @@ jobs:
                   toolchain: stable
                   target: ${{ matrix.target }}
                   override: true
-            - name: Install libssl-dev & pkg-config
-              run: sudo apt-get install pkg-config libssl-dev
-            - name: Install Clang
-              run: sudo apt install clang
+            - name: Install Build Dependencies
+              run: sudo apt-get update && sudo apt-get install pkg-config libssl-dev clang
             - uses: actions-rs/cargo@v1
               env:
                 TARGET_CC: clang
               with:
+                use-cross: true
                 command: build
                 args: --release --target=${{ matrix.target }}
