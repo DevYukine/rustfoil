@@ -18,8 +18,7 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 
 ### Index
 
-- [x] Generate index
-- [x] Add success message
+- [x] Generate index (full spec support)
 - [x] Change index name
 - [x] Change output location
 
