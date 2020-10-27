@@ -32,7 +32,7 @@ impl CompressionFlag {
             CompressionFlag::ZSTD => Ok(zstd::block::compress(data.as_bytes(), 22)?.clone()),
             CompressionFlag::Zlib => {
                 let mut encoder = ZlibEncoder::new(Vec::new(), Compression::best());
-                encoder.write_all(data.as_ref());
+                encoder.write_all(data.as_ref())?;
                 Ok(encoder.finish()?.clone())
             }
         }
