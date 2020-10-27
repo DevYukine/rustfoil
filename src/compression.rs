@@ -1,3 +1,4 @@
+use crate::result::Result;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use std::io::Write;
@@ -14,7 +15,7 @@ pub enum CompressionFlag {
 impl FromStr for CompressionFlag {
     type Err = String;
 
-    fn from_str(compression: &str) -> Result<Self, Self::Err> {
+    fn from_str(compression: &str) -> std::result::Result<Self, Self::Err> {
         match compression.to_lowercase().as_ref() {
             "off" => Ok(CompressionFlag::Off),
             "zstd" => Ok(CompressionFlag::ZSTD),
@@ -25,14 +26,14 @@ impl FromStr for CompressionFlag {
 }
 
 impl CompressionFlag {
-    pub fn compress(&self, data: &str) -> Vec<u8> {
+    pub fn compress(&self, data: &str) -> Result<Vec<u8>> {
         match &self {
-            CompressionFlag::Off => data.as_bytes().to_vec(),
-            CompressionFlag::ZSTD => zstd::block::compress(data.as_bytes(), 22).unwrap().clone(),
+            CompressionFlag::Off => Ok(data.as_bytes().to_vec()),
+            CompressionFlag::ZSTD => Ok(zstd::block::compress(data.as_bytes(), 22)?.clone()),
             CompressionFlag::Zlib => {
                 let mut encoder = ZlibEncoder::new(Vec::new(), Compression::best());
                 encoder.write_all(data.as_ref());
-                encoder.finish().unwrap().clone()
+                Ok(encoder.finish()?.clone())
             }
         }
     }

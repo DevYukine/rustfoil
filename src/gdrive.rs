@@ -1,17 +1,25 @@
-use google_drive3::{DriveHub, File, Permission, Scope};
+use google_drive3::Scope::Full;
+use google_drive3::{
+    About, AboutGetCall, DriveHub, Error, File, FileList, FileListCall, Permission,
+    PermissionCreateCall, PermissionDeleteCall, Scope,
+};
+use hyper::client::Response;
 use hyper::Client;
+use std::borrow::{Borrow, BorrowMut};
 use std::path::Path;
-use std::{error, fmt};
+use std::rc::Rc;
 use yup_oauth2::{Authenticator, DefaultAuthenticatorDelegate, DiskTokenStorage, FlowType};
+
+trait ScopedRequest<'a, A, B> {
+    fn add_scope<T, S>(&self, scope: T) -> Box<Self>
+    where
+        T: Into<Option<S>>,
+        S: AsRef<str>;
+}
 
 pub struct GDriveService {
     drive_hub:
         DriveHub<Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>,
-}
-
-#[derive(Debug, Clone)]
-pub struct DriveError {
-    message: String,
 }
 
 pub struct FileInfo {
@@ -20,20 +28,6 @@ pub struct FileInfo {
     pub name: String,
     pub shared: bool,
 }
-
-impl fmt::Display for DriveError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-impl DriveError {
-    pub fn new(message: String) -> DriveError {
-        return DriveError { message };
-    }
-}
-
-impl error::Error for DriveError {}
 
 impl FileInfo {
     pub fn new(id: String, size: String, name: String, shared: bool) -> FileInfo {
@@ -69,11 +63,15 @@ impl GDriveService {
         GDriveService { drive_hub: hub }
     }
 
-    pub fn trigger_auth(&self) {
-        self.drive_hub.about().get().doit();
+    pub fn trigger_auth(&self) -> google_drive3::Result<(Response, About)> {
+        self.drive_hub.about().get().add_scope(Full).doit()
     }
 
-    pub fn ls(&self, folder_id: &str, search_terms: Option<&str>) -> Result<Vec<File>, DriveError> {
+    pub fn ls(
+        &self,
+        folder_id: &str,
+        search_terms: Option<&str>,
+    ) -> google_drive3::Result<Vec<File>> {
         let mut files = Vec::new();
 
         let mut page_token: Option<String> = None;
@@ -97,16 +95,12 @@ impl GDriveService {
                 .param("fields", "files(id,name,size,permissionIds),nextPageToken");
 
             let resp = match page_token {
-                None => req.doit().unwrap(),
-                Some(_) => req.page_token(page_token.unwrap().as_str()).doit().unwrap(),
+                None => req.add_scope(Full).doit()?,
+                Some(_) => req
+                    .page_token(page_token.unwrap().as_str())
+                    .add_scope(Full)
+                    .doit()?,
             };
-
-            if !resp.0.status.is_success() {
-                return Err(DriveError::new(format!(
-                    "Non Success Status Code {}",
-                    &resp.0.status
-                )));
-            }
 
             for file in resp.1.files.unwrap() {
                 files.push(file);
@@ -121,35 +115,35 @@ impl GDriveService {
         Ok(files)
     }
 
-    pub fn lsd(&self, folder_id: &str) -> Result<Vec<File>, DriveError> {
+    pub fn lsd(&self, folder_id: &str) -> google_drive3::Result<Vec<File>> {
         self.ls(
             folder_id,
             Option::from("mimeType contains \"application/vnd.google-apps.folder\""),
         )
     }
 
-    pub fn lsf(&self, folder_id: &str) -> Result<Vec<File>, DriveError> {
+    pub fn lsf(&self, folder_id: &str) -> google_drive3::Result<Vec<File>> {
         self.ls(
             folder_id,
             Option::from("not mimeType contains \"application/vnd.google-apps.folder\""),
         )
     }
 
-    pub fn lsd_my_drive(&self) -> Result<Vec<File>, DriveError> {
+    pub fn lsd_my_drive(&self) -> google_drive3::Result<Vec<File>> {
         self.ls(
             "root",
             Option::from("mimeType contains \"application/vnd.google-apps.folder\""),
         )
     }
 
-    pub fn lsf_my_drive(&self) -> Result<Vec<File>, DriveError> {
+    pub fn lsf_my_drive(&self) -> google_drive3::Result<Vec<File>> {
         self.ls(
             "root",
             Option::from("not mimeType contains \"application/vnd.google-apps.folder\""),
         )
     }
 
-    pub fn is_file_shared(&self, file: File) -> bool {
+    pub fn is_file_shared(&self, file: File) -> google_drive3::Result<bool> {
         let mut shared = false;
 
         let file_id = file.id.unwrap();
@@ -172,7 +166,7 @@ impl GDriveService {
                 }
 
                 if *original_vector.last().unwrap() == 'k' && all_numeric {
-                    self.delete_file_permissions(file_id.as_str(), id.as_str())
+                    self.delete_file_permissions(file_id.as_str(), id.as_str())?;
                 }
 
                 if id == "anyoneWithLink" {
@@ -181,17 +175,26 @@ impl GDriveService {
             }
         }
 
-        shared
+        Ok(shared)
     }
 
-    pub fn delete_file_permissions(&self, file_id: &str, permission_id: &str) {
+    pub fn delete_file_permissions(
+        &self,
+        file_id: &str,
+        permission_id: &str,
+    ) -> google_drive3::Result<Response> {
         self.drive_hub
             .permissions()
             .delete(file_id, permission_id)
-            .doit();
+            .add_scope(Full)
+            .doit()
     }
 
-    pub fn get_all_files_in_folder(&self, folder_id: &str, recursion: bool) -> Vec<FileInfo> {
+    pub fn get_all_files_in_folder(
+        &self,
+        folder_id: &str,
+        recursion: bool,
+    ) -> google_drive3::Result<Vec<FileInfo>> {
         let mut files = Vec::new();
 
         for file in self.lsf(folder_id).unwrap() {
@@ -201,7 +204,7 @@ impl GDriveService {
                     file.id.unwrap(),
                     file.size.unwrap(),
                     file.name.unwrap(),
-                    self.is_file_shared(cl),
+                    self.is_file_shared(cl)?,
                 ));
             }
         }
@@ -209,20 +212,24 @@ impl GDriveService {
         if recursion {
             for folder in self.lsd(folder_id).unwrap() {
                 for file_info in
-                    self.get_all_files_in_folder(folder.id.unwrap().as_str(), recursion)
+                    self.get_all_files_in_folder(folder.id.unwrap().as_str(), recursion)?
                 {
                     files.push(file_info);
                 }
             }
         }
 
-        files
+        Ok(files)
     }
 
-    pub fn share_file(&self, file_id: &str) {
+    pub fn share_file(&self, file_id: &str) -> google_drive3::Result<(Response, Permission)> {
         let mut perms = Permission::default();
         perms.role = Option::from("reader".to_string());
         perms.type_ = Option::from("anyone".to_string());
-        self.drive_hub.permissions().create(perms, file_id).doit();
+        self.drive_hub
+            .permissions()
+            .create(perms, file_id)
+            .add_scope(Full)
+            .doit()
     }
 }
