@@ -25,8 +25,4 @@ jobs:
               run: sudo apt-get install pkg-config libssl-dev
             - name: Install Clang
               run: sudo apt install clang
-            - uses: actions-rs/cargo@v1
-              with:
-                  use-cross: true
-                  command: TARGET_CC=clang build
-                  args: --release --target=${{ matrix.target }}
+            - run: TARGET_CC=clang build cargo build --release --target=${{ matrix.target }}
