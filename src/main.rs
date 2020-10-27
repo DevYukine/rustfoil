@@ -244,7 +244,7 @@ impl RustfoilService {
 
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {bytes}/{total_bytes} ({eta})")
+                .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {pos:>7}/{len:7}")
                 .progress_chars("#>-"),
         );
 
