@@ -33,27 +33,27 @@ impl Logger {
             err: Term::stderr(),
         }
     }
-    pub fn log_trace(&self, message: &str) {
+    pub fn log_trace(&self, message: &str) -> std::io::Result<()> {
         self.log(message, LogLevel::Trace)
     }
 
-    pub fn log_debug(&self, message: &str) {
+    pub fn log_debug(&self, message: &str) -> std::io::Result<()> {
         self.log(message, LogLevel::Debug)
     }
 
-    pub fn log_info(&self, message: &str) {
+    pub fn log_info(&self, message: &str) -> std::io::Result<()> {
         self.log(message, LogLevel::Info)
     }
 
-    pub fn log_warning(&self, message: &str) {
+    pub fn log_warning(&self, message: &str) -> std::io::Result<()> {
         self.log(message, LogLevel::Warning)
     }
 
-    pub fn log_error(&self, message: &str) {
+    pub fn log_error(&self, message: &str) -> std::io::Result<()> {
         self.log(message, LogLevel::Error)
     }
 
-    pub fn log(&self, message: &str, level: LogLevel) {
+    pub fn log(&self, message: &str, level: LogLevel) -> std::io::Result<()> {
         let mut std = &self.out;
 
         if level == LogLevel::Error {
@@ -70,6 +70,6 @@ impl Logger {
                 LogLevel::Error => Color::Red,
             }),
             message
-        ));
+        ))
     }
 }

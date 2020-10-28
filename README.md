@@ -33,13 +33,13 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 
 ### Upload 
 
-- [ ] Upload index to own gdrive
-- [ ] Upload index to team drive
+- [x] Upload index to own gdrive
+- [x] Upload index to team drive
 
 ### Share Files
 
 - [x] Share files inside index
-- [ ] Share uploaded index
+- [x] Share uploaded index
 
 ### Error Handling
 

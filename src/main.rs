@@ -103,6 +103,14 @@ pub struct Input {
     #[structopt(long)]
     share_index: bool,
 
+    /// If the index file should be uploaded to specific folder
+    #[structopt(long)]
+    upload_folder_id: Option<String>,
+
+    /// If the index file should be uploaded to My Drive
+    #[structopt(long)]
+    upload_my_drive: bool,
+
     /// Which compression should be used for the index file
     #[structopt(long, default_value = "zstd")]
     compression: CompressionFlag,
@@ -151,54 +159,55 @@ impl RustfoilService {
 
         index.files = Some(index_files);
 
-        self.logger.log_debug("Added files to index");
+        self.logger.log_debug("Added files to index")?;
 
         if self.input.success.is_some() {
             index.success = Some(self.input.success.clone().unwrap());
-            self.logger.log_debug("Added success message to index");
+            self.logger.log_debug("Added success message to index")?;
         }
 
         if self.input.referrer.is_some() {
             index.referrer = Some(self.input.referrer.clone().unwrap());
-            self.logger.log_debug("Added referrer to index");
+            self.logger.log_debug("Added referrer to index")?;
         }
 
         if self.input.google_api_key.is_some() {
             index.google_api_key = Some(self.input.google_api_key.clone().unwrap());
-            self.logger.log_debug("Added google api key to index");
+            self.logger.log_debug("Added google api key to index")?;
         }
 
         if self.input.one_fichier_keys.is_some() {
             index.one_fichier_keys = Some(self.input.one_fichier_keys.clone().unwrap());
-            self.logger.log_debug("Added 1Fichier keys to index");
+            self.logger.log_debug("Added 1Fichier keys to index")?;
         }
 
         if self.input.headers.is_some() {
             index.headers = Some(self.input.headers.clone().unwrap());
-            self.logger.log_debug("Added headers to index");
+            self.logger.log_debug("Added headers to index")?;
         }
 
         if self.input.min_version.is_some() {
             index.version = Some(self.input.min_version.clone().unwrap());
-            self.logger.log_debug("Added minimum version to index");
+            self.logger.log_debug("Added minimum version to index")?;
         }
 
         if self.input.theme_blacklist.is_some() {
             index.theme_blacklist = Some(self.input.theme_blacklist.clone().unwrap());
-            self.logger.log_debug("Added theme blacklist to index");
+            self.logger.log_debug("Added theme blacklist to index")?;
         }
 
         if self.input.theme_whitelist.is_some() {
             index.theme_whitelist = Some(self.input.theme_whitelist.clone().unwrap());
-            self.logger.log_debug("Added theme whitelist to index");
+            self.logger.log_debug("Added theme whitelist to index")?;
         }
 
         if self.input.theme_error.is_some() {
             index.theme_error = Some(self.input.theme_error.clone().unwrap());
-            self.logger.log_debug("Added theme error message to index");
+            self.logger
+                .log_debug("Added theme error message to index")?;
         }
 
-        self.logger.log_info("Generated index successfully");
+        self.logger.log_info("Generated index successfully")?;
 
         Ok(index)
     }
@@ -239,25 +248,49 @@ impl RustfoilService {
         Ok(())
     }
 
+    pub fn share_file(&self, file_id: String, is_shared: bool) {
+        if !is_shared {
+            self.gdrive.share_file(file_id.as_str());
+        }
+    }
+
     pub fn share_files(&self, files: Vec<ParsedFileInfo>) -> result::Result<()> {
         let pb = ProgressBar::new(files.len() as u64);
 
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {pos:>7}/{len:7}")
+                .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {msg} {pos:>7}/{len:7} Files")
                 .progress_chars("#>-"),
         );
 
-        for file in &files {
-            if !file.shared {
-                self.gdrive.share_file(file.id.as_str());
-            }
+        pb.set_message("Sharing");
+
+        for file in files {
+            let parsed_file_clone = file.clone();
+            self.share_file(parsed_file_clone.id, parsed_file_clone.shared);
             pb.inc(1);
         }
 
-        pb.finish_with_message(format!("Shared {} files", files.len()).as_str());
+        pb.finish_with_message("Finished Sharing");
 
         Ok(())
+    }
+
+    pub fn upload_index(&self) -> std::io::Result<(String, bool)> {
+        let folder_id = self.input.upload_folder_id.clone();
+        let input = self.input.output_path.as_path();
+
+        let res = self.gdrive.upload_file(input, folder_id.clone()).unwrap();
+
+        self.logger.log_info(
+            format!(
+                "Uploaded Index to {}",
+                destination = folder_id.unwrap_or("My Drive".to_string())
+            )
+            .as_str(),
+        )?;
+
+        Ok(res)
     }
 
     pub fn scan_folder(&mut self) -> result::Result<Vec<ParsedFileInfo>> {
@@ -333,6 +366,15 @@ fn real_main() -> result::Result<()> {
     if service.input.share_files {
         service.share_files(files)?;
     }
+
+    if service.input.upload_my_drive || service.input.upload_folder_id.is_some() {
+        let (id, shared) = service.upload_index()?;
+
+        if service.input.share_index {
+            service.share_file(id, shared);
+            service.logger.log_info("Shared Index File")?;
+        }
+    };
 
     Ok(())
 }

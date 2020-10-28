@@ -1,10 +1,8 @@
 use google_drive3::Scope::Full;
-use google_drive3::{
-    About, DriveHub, Error, File, FileList, FileListCall, Permission, PermissionCreateCall,
-    PermissionDeleteCall, Scope,
-};
+use google_drive3::{About, DriveHub, File, Permission};
 use hyper::client::Response;
 use hyper::Client;
+use std::fs;
 use std::path::Path;
 use yup_oauth2::{Authenticator, DefaultAuthenticatorDelegate, DiskTokenStorage, FlowType};
 
@@ -229,5 +227,70 @@ impl GDriveService {
             .create(perms, file_id)
             .add_scope(Full)
             .doit()
+    }
+
+    pub fn upload_file(
+        &self,
+        file_path: &Path,
+        dest_folder_id: Option<String>,
+    ) -> google_drive3::Result<(String, bool)> {
+        let root_files = if dest_folder_id.is_some() {
+            self.lsf(dest_folder_id.unwrap().as_str())
+        } else {
+            self.lsf_my_drive()
+        }?;
+
+        let file_path_name = file_path.file_name().unwrap().to_str().unwrap();
+
+        let mut existing_file: Option<File> = None;
+
+        for file in root_files {
+            let file_clone = file.clone();
+            if file_clone.name.unwrap() == file_path_name.to_owned() {
+                existing_file = Some(file.clone());
+            }
+        }
+
+        let res = if existing_file.is_some() {
+            let mut req = File::default();
+
+            let existing_file_unwrapped = existing_file.unwrap();
+
+            req.name = existing_file_unwrapped.name;
+
+            self.drive_hub
+                .files()
+                .update(req, existing_file_unwrapped.id.unwrap().as_str())
+                .supports_all_drives(true)
+                .supports_team_drives(true)
+                .add_scope(Full)
+                .upload_resumable(
+                    fs::File::open(file_path).unwrap(),
+                    "application/octet-stream".parse().unwrap(),
+                )
+                .unwrap()
+                .1
+        } else {
+            let mut file = File::default();
+
+            file.name = Some(file_path_name.to_string());
+
+            self.drive_hub
+                .files()
+                .create(file)
+                .supports_team_drives(true)
+                .supports_all_drives(true)
+                .add_scope(Full)
+                .upload_resumable(
+                    fs::File::open(file_path).unwrap(),
+                    "application/octet-stream".parse().unwrap(),
+                )
+                .unwrap()
+                .1
+        };
+
+        let id = res.id.clone().unwrap();
+
+        Ok((id, self.is_file_shared(res).unwrap()))
     }
 }
