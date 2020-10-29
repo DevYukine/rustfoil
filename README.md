@@ -29,7 +29,7 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 
 ### Encryption
 
-- [ ] Encrypt with AES-ECB-256
+- [x] Allow to use Tinfoil encryption (DRM Spec)
 
 ### Upload 
 
