@@ -1,15 +1,16 @@
 use console::{style, Color, Term};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum LogLevel {
-    Trace,
-    Debug,
-    Info,
-    Warning,
-    Error,
+    Trace = 0,
+    Debug = 1,
+    Info = 2,
+    Warning = 3,
+    Error = 4,
 }
 
 pub struct Logger {
+    pub level: LogLevel,
     pub out: Term,
     pub err: Term,
 }
@@ -27,8 +28,9 @@ impl LogLevel {
 }
 
 impl Logger {
-    pub fn new() -> Logger {
+    pub fn new(level: LogLevel) -> Logger {
         Logger {
+            level,
             out: Term::stdout(),
             err: Term::stderr(),
         }
@@ -54,6 +56,10 @@ impl Logger {
     }
 
     pub fn log(&self, message: &str, level: LogLevel) -> std::io::Result<()> {
+        if (level.clone() as u8) < (self.level.to_owned() as u8) {
+            return Ok(());
+        }
+
         let mut std = &self.out;
 
         if level == LogLevel::Error {

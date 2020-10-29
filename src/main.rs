@@ -1,6 +1,7 @@
 #[cfg_attr(test, macro_use)]
 extern crate structopt;
 
+use crate::logging::LogLevel::{Debug, Info, Trace};
 use compression::CompressionFlag;
 use encryption::EncryptionFlag;
 use error::RustfoilError;
@@ -130,9 +131,14 @@ impl RustfoilService {
     pub fn new(input: Input) -> RustfoilService {
         let credentials = input.credentials.clone();
         let token = input.token.clone();
+        let verbose_count = input.verbose;
         RustfoilService {
             input,
-            logger: Logger::new(),
+            logger: Logger::new(match verbose_count {
+                1 => Debug,
+                2 => Trace,
+                _ => Info,
+            }),
             gdrive: GDriveService::new(credentials.as_path(), token.as_path()),
         }
     }
