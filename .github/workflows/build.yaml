@@ -6,7 +6,7 @@ env:
     CARGO_TERM_COLOR: always
 
 jobs:
-    ubuntu:
+    linux:
         name: Linux Build
         runs-on: ubuntu-latest
         strategy:
@@ -17,8 +17,8 @@ jobs:
                     - name: x86_64-unknown-linux-gnu
                       arch: x64
         steps:
-            - uses: actions/checkout@v2
-              name: Checkout Source code
+            - name: Checkout Source code
+              uses: actions/checkout@v2
             - name: Cache Rust dependencies
               uses: actions/cache@v2
               with:
@@ -27,7 +27,8 @@ jobs:
                       ~/.cargo/git
                       target
                   key: ${{ matrix.target.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-            - uses: actions-rs/toolchain@v1
+            - name: Install Rust Toolchain
+              uses: actions-rs/toolchain@v1
               with:
                   toolchain: stable
                   target: ${{ matrix.target.name }}
@@ -41,13 +42,11 @@ jobs:
               with:
                   command: build
                   args: --release --target=${{ matrix.target.name }}
-            - uses: actions/upload-artifact@v2
-              name: Upload Artifact
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v2
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
                   path: target/${{ matrix.target.name }}/release/rustfoil
-
-
 
     windows:
         name: Windows Build
@@ -60,7 +59,8 @@ jobs:
                     - name: x86_64-pc-windows-msvc
                       arch: x64
         steps:
-            - uses: actions/checkout@v2
+            - name: Checkout Source code
+              uses: actions/checkout@v2
             - name: Cache Rust dependencies
               uses: actions/cache@v2
               with:
@@ -69,7 +69,8 @@ jobs:
                       ~/.cargo/git
                       target
                   key: ${{ matrix.target.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-            - uses: actions-rs/toolchain@v1
+            - name: Install Rust Toolchain
+              uses: actions-rs/toolchain@v1
               with:
                   toolchain: stable
                   target: ${{ matrix.target.name }}
@@ -79,8 +80,8 @@ jobs:
               with:
                   command: build
                   args: --release --target=${{ matrix.target.name }}
-            - uses: actions/upload-artifact@v2
-              name: Upload Artifact
+            - name: Upload Artifact
+              uses: actions/upload-artifact@v2
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
                   path: target/${{ matrix.target.name }}/release/rustfoil.exe
