@@ -30,7 +30,7 @@ mod tinfoil;
 #[structopt(rename_all = "kebab-case")]
 pub struct Input {
     /// Folder IDs of Google Drive folders to scan
-    folder_id: String,
+    folder_ids: Vec<String>,
 
     /// Path to Google Application Credentials
     #[structopt(long, parse(from_os_str), default_value = "credentials.json")]
@@ -328,31 +328,38 @@ impl RustfoilService {
         pb.set_message("Scanning...");
 
         let files: Vec<ParsedFileInfo> = self
-            .gdrive
-            .get_all_files_in_folder(&self.input.folder_id, !self.input.no_recursion)
-            .unwrap()
-            .into_iter()
-            .map(|file_info| ParsedFileInfo::new(file_info))
-            .filter(|file| {
-                let mut keep = true;
+            .input
+            .folder_ids
+            .iter()
+            .map(|id| -> Vec<ParsedFileInfo> {
+                self.gdrive
+                    .get_all_files_in_folder(id.to_owned().as_str(), !self.input.no_recursion)
+                    .unwrap()
+                    .into_iter()
+                    .map(|file_info| ParsedFileInfo::new(file_info))
+                    .filter(|file| {
+                        let mut keep = true;
 
-                if !self.input.add_non_nsw_files {
-                    let extension: String = file
-                        .name
-                        .chars()
-                        .skip(file.name.len() - 4)
-                        .take(4)
-                        .collect();
+                        if !self.input.add_non_nsw_files {
+                            let extension: String = file
+                                .name
+                                .chars()
+                                .skip(file.name.len() - 4)
+                                .take(4)
+                                .collect();
 
-                    keep = vec![".nsp", ".nsz", ".xci", ".xcz"].contains(&&*extension);
-                }
+                            keep = vec![".nsp", ".nsz", ".xci", ".xcz"].contains(&&*extension);
+                        }
 
-                if !self.input.add_nsw_files_without_title_id {
-                    keep = re.is_match(file.name_encoded.as_str());
-                }
+                        if !self.input.add_nsw_files_without_title_id {
+                            keep = re.is_match(file.name_encoded.as_str());
+                        }
 
-                keep
+                        keep
+                    })
+                    .collect()
             })
+            .flatten()
             .collect();
 
         pb.finish_with_message(&*format!("Scanned {} files", files.len()));
