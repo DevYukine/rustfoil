@@ -260,7 +260,7 @@ impl RustfoilService {
                 }
             )
             .as_str(),
-        );
+        )?;
 
         Ok(())
     }
