@@ -215,20 +215,27 @@ impl RustfoilService {
     pub fn output_index(&self, index: Index) -> result::Result<()> {
         let json = serde_json::to_string(&index)?;
         let compression = &self.input.compression;
+        let encryption_file_path_buf = self.input.public_key.clone();
+        let encryption = if self.input.public_key.is_some() {
+            EncryptionFlag::Encrypt
+        } else {
+            EncryptionFlag::NoEncrypt
+        };
 
         std::fs::write(
             &self.input.output_path,
             convert_to_tinfoil_format(
-                compression.compress(json.as_str())?,
+                json.as_str(),
                 compression.clone(),
-                EncryptionFlag::NoEncrypt,
+                encryption.clone(),
+                encryption_file_path_buf,
             )?,
         )
         .expect("Couldn't write output file to Path");
 
         self.logger.log_info(
             format!(
-                "Finished writing {} to disk{}",
+                "Finished writing {} to disk, using {} compression & {}encryption",
                 self.input
                     .output_path
                     .file_name()
@@ -236,10 +243,14 @@ impl RustfoilService {
                     .to_str()
                     .unwrap(),
                 compression = match compression {
-                    CompressionFlag::Off => "".to_string(),
+                    CompressionFlag::Off => "no".to_string(),
                     CompressionFlag::ZSTD | CompressionFlag::Zlib => {
-                        format!(", using compression \"{}\"", compression).to_string()
+                        compression.to_string()
                     }
+                },
+                encryptiom = match encryption {
+                    EncryptionFlag::NoEncrypt => "no ",
+                    EncryptionFlag::Encrypt => "",
                 }
             )
             .as_str(),
