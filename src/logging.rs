@@ -1,6 +1,6 @@
 use console::{style, Color, Term};
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum LogLevel {
     Trace = 0,
     Debug = 1,
@@ -56,7 +56,10 @@ impl Logger {
     }
 
     pub fn log(&self, message: &str, level: LogLevel) -> std::io::Result<()> {
-        if (level.clone() as u8) < (self.level.to_owned() as u8) {
+        let level_u8 = level as u8;
+        let self_level_u8 = self.level.to_owned() as u8;
+
+        if level_u8 < self_level_u8 {
             return Ok(());
         }
 

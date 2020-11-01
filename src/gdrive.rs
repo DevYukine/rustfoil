@@ -247,7 +247,7 @@ impl GDriveService {
         for file in root_files {
             let file_clone = file.clone();
             if file_clone.name.unwrap() == file_path_name.to_owned() {
-                existing_file = Some(file.clone());
+                existing_file = Some(file);
             }
         }
 

@@ -95,7 +95,7 @@ pub struct ParsedFileInfo {
 
 impl ParsedFileInfo {
     pub fn new(info: FileInfo) -> ParsedFileInfo {
-        let name_encoded = utf8_percent_encode(&*info.name.clone(), NON_ALPHANUMERIC).to_string();
+        let name_encoded = utf8_percent_encode(info.name.as_str(), NON_ALPHANUMERIC).to_string();
         ParsedFileInfo {
             id: info.id,
             size: info.size,

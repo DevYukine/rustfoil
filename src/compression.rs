@@ -44,11 +44,11 @@ impl CompressionFlag {
     pub fn compress(&self, data: &str) -> Result<Vec<u8>> {
         match &self {
             CompressionFlag::Off => Ok(data.as_bytes().to_vec()),
-            CompressionFlag::ZSTD => Ok(zstd::block::compress(data.as_bytes(), 22)?.clone()),
+            CompressionFlag::ZSTD => Ok(zstd::block::compress(data.as_bytes(), 22)?),
             CompressionFlag::Zlib => {
                 let mut encoder = ZlibEncoder::new(Vec::new(), Compression::best());
                 encoder.write_all(data.as_ref())?;
-                Ok(encoder.finish()?.clone())
+                Ok(encoder.finish()?)
             }
         }
     }

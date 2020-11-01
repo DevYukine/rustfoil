@@ -12,6 +12,7 @@ use index::ParsedFileInfo;
 use indicatif::{ProgressBar, ProgressStyle};
 use logging::Logger;
 use regex::Regex;
+use std::borrow::Borrow;
 use std::path::PathBuf;
 use structopt::StructOpt;
 use tinfoil::convert_to_tinfoil_format;
@@ -129,17 +130,15 @@ pub struct RustfoilService {
 
 impl RustfoilService {
     pub fn new(input: Input) -> RustfoilService {
-        let credentials = input.credentials.clone();
-        let token = input.token.clone();
         let verbose_count = input.verbose;
         RustfoilService {
-            input,
             logger: Logger::new(match verbose_count {
                 1 => Debug,
                 2 => Trace,
                 _ => Info,
             }),
-            gdrive: GDriveService::new(credentials.as_path(), token.as_path()),
+            gdrive: GDriveService::new(input.credentials.as_path(), input.token.as_path()),
+            input,
         }
     }
 
@@ -151,7 +150,7 @@ impl RustfoilService {
         Ok(())
     }
 
-    pub fn generate_index(&mut self, files: Vec<ParsedFileInfo>) -> result::Result<Box<Index>> {
+    pub fn generate_index(&self, files: Vec<ParsedFileInfo>) -> result::Result<Box<Index>> {
         let mut index = Box::new(Index::new());
 
         let mut index_files: Vec<FileEntry> = Vec::new();
@@ -294,7 +293,7 @@ impl RustfoilService {
     }
 
     pub fn upload_index(&self) -> std::io::Result<(String, bool)> {
-        let folder_id = self.input.upload_folder_id.clone();
+        let folder_id = &self.input.upload_folder_id;
         let input = self.input.output_path.as_path();
 
         let res = self.gdrive.upload_file(input, folder_id.clone()).unwrap();
@@ -302,7 +301,9 @@ impl RustfoilService {
         self.logger.log_info(
             format!(
                 "Uploaded Index to {}",
-                destination = folder_id.unwrap_or("My Drive".to_string())
+                destination = folder_id
+                    .as_ref()
+                    .unwrap_or("My Drive".to_string().borrow())
             )
             .as_str(),
         )?;
