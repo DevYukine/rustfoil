@@ -24,7 +24,7 @@ pub struct Index {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub headers: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub version: Option<String>,
+    pub version: Option<f64>,
     #[serde(
         rename(deserialize = "clientCertPub"),
         skip_serializing_if = "Option::is_none"

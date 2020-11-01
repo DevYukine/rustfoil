@@ -83,7 +83,7 @@ pub struct Input {
 
     /// Adds a minimum Tinfoil version to load the index
     #[structopt(long)]
-    min_version: Option<String>,
+    min_version: Option<f64>,
 
     /// Adds a list of themes to blacklist based on their hash
     #[structopt(long)]
