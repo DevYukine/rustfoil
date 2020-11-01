@@ -195,12 +195,12 @@ impl GDriveService {
 
         for file in self.lsf(folder_id).unwrap() {
             if file.size.is_some() {
-                let cl = file.clone();
+                let file_clone = file.clone();
                 files.push(FileInfo::new(
                     file.id.unwrap(),
                     file.size.unwrap(),
                     file.name.unwrap(),
-                    self.is_file_shared(cl)?,
+                    self.is_file_shared(file_clone)?,
                 ));
             }
         }
