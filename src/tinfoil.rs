@@ -3,7 +3,7 @@ use crate::encryption::EncryptionFlag;
 use crate::result;
 use std::borrow::Borrow;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 pub fn convert_to_tinfoil_format(
     json: &str,
