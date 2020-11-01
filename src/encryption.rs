@@ -1,11 +1,11 @@
-use aes::cipher::stream::generic_array::GenericArray;
-use aes::{Aes128, Aes256, NewBlockCipher};
+use aes::Aes128;
 use block_modes::block_padding::ZeroPadding;
 use block_modes::{BlockMode, Ecb};
 use rand::rngs::OsRng;
 use rand::RngCore;
 use rsa::{pem, PaddingScheme, PublicKey, RSAPublicKey};
 use std::convert::TryFrom;
+use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 
@@ -23,13 +23,13 @@ impl EncryptionFlag {
 
         OsRng.fill_bytes(&mut random_aes_key);
 
-        let pub_key_file = std::fs::File::open(file)?;
+        let pub_key_file = File::open(file)?;
         let mut buf_reader = BufReader::new(pub_key_file);
         let mut pub_key_str = String::new();
 
         buf_reader.read_to_string(&mut pub_key_str)?;
 
-        let public_key = RSAPublicKey::try_from(rsa::pem::parse(pub_key_str)?)?;
+        let public_key = RSAPublicKey::try_from(pem::parse(pub_key_str)?)?;
 
         let iv = Default::default();
 
