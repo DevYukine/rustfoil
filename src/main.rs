@@ -117,6 +117,10 @@ pub struct Input {
     #[structopt(long, default_value = "zstd")]
     compression: CompressionFlag,
 
+    /// If OAuth should be done headless
+    #[structopt(long)]
+    headless: bool,
+
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
     verbose: u8,
@@ -136,7 +140,11 @@ impl RustfoilService {
                 2 => Trace,
                 _ => Info,
             }),
-            gdrive: GDriveService::new(input.credentials.as_path(), input.token.as_path()),
+            gdrive: GDriveService::new(
+                input.credentials.as_path(),
+                input.token.as_path(),
+                input.headless,
+            ),
             input,
         }
     }

@@ -37,7 +37,7 @@ impl FileInfo {
 }
 
 impl GDriveService {
-    pub fn new(secret_path: &Path, token_path: &Path) -> GDriveService {
+    pub fn new(secret_path: &Path, token_path: &Path, headless: bool) -> GDriveService {
         let secret = yup_oauth2::read_application_secret(secret_path)
             .expect("failed to read \"credentials.json\" file");
         let auth = Authenticator::new(
@@ -47,7 +47,10 @@ impl GDriveService {
                 hyper_rustls::TlsClient::new(),
             )),
             DiskTokenStorage::new(&token_path.to_str().unwrap().to_string()).unwrap(),
-            Option::from(FlowType::InstalledRedirect(3333)),
+            Option::from(match headless {
+                true => FlowType::InstalledInteractive,
+                false => FlowType::InstalledRedirect(3333),
+            }),
         );
         let hub = DriveHub::new(
             hyper::Client::with_connector(hyper::net::HttpsConnector::new(
