@@ -130,9 +130,8 @@ pub struct RustfoilService {
 
 impl RustfoilService {
     pub fn new(input: Input) -> RustfoilService {
-        let verbose_count = input.verbose;
         RustfoilService {
-            logger: Logger::new(match verbose_count {
+            logger: Logger::new(match input.verbose {
                 1 => Debug,
                 2 => Trace,
                 _ => Info,
