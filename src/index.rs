@@ -1,54 +1,30 @@
 use crate::gdrive::FileInfo;
 use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
 use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
+#[skip_serializing_none]
 #[derive(Serialize, Deserialize)]
 pub struct Index {
     pub files: Option<Vec<FileEntry>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub directories: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub success: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub referrer: Option<String>,
-    #[serde(
-        rename(deserialize = "googleApiKey"),
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename(deserialize = "googleApiKey"))]
     pub google_api_key: Option<String>,
-    #[serde(
-        rename(deserialize = "oneFichierKeys"),
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename(deserialize = "oneFichierKeys"))]
     pub one_fichier_keys: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub headers: Option<Vec<String>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
     pub version: Option<f64>,
-    #[serde(
-        rename(deserialize = "clientCertPub"),
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename(deserialize = "clientCertPub"))]
     pub client_cert_pub: Option<String>,
-    #[serde(
-        rename(deserialize = "clientCertKey"),
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename(deserialize = "clientCertKey"))]
     pub client_cert_key: Option<String>,
-    #[serde(
-        rename(deserialize = "themeBlackList"),
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename(deserialize = "themeBlackList"))]
     pub theme_blacklist: Option<Vec<String>>,
-    #[serde(
-        rename(deserialize = "themeWhiteList"),
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename(deserialize = "themeWhiteList"))]
     pub theme_whitelist: Option<Vec<String>>,
-    #[serde(
-        rename(deserialize = "themeError"),
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(rename(deserialize = "themeError"))]
     pub theme_error: Option<String>,
 }
 
