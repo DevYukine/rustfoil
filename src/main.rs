@@ -7,6 +7,7 @@ use compression::CompressionFlag;
 use encryption::EncryptionFlag;
 use error::RustfoilError;
 use gdrive::GDriveService;
+use hhmmss::Hhmmss;
 use index::FileEntry;
 use index::Index;
 use index::ParsedFileInfo;
@@ -15,6 +16,7 @@ use logging::Logger;
 use regex::Regex;
 use std::borrow::Borrow;
 use std::path::PathBuf;
+use std::time::Instant;
 use structopt::StructOpt;
 use tinfoil::convert_to_tinfoil_format;
 
@@ -130,7 +132,8 @@ pub struct Input {
 pub struct RustfoilService {
     logger: Logger,
     input: Input,
-    gdrive: GDriveService,
+    gdrive: Option<GDriveService>,
+    timer: Instant,
 }
 
 impl RustfoilService {
@@ -141,13 +144,18 @@ impl RustfoilService {
                 2 => Trace,
                 _ => Info,
             }),
-            gdrive: GDriveService::new(
-                input.credentials.as_path(),
-                input.token.as_path(),
-                input.headless,
-            ),
+            timer: Instant::now(),
+            gdrive: None,
             input,
         }
+    }
+
+    pub fn init(&mut self) {
+        self.gdrive = Some(GDriveService::new(
+            self.input.credentials.as_path(),
+            self.input.token.as_path(),
+            self.input.headless,
+        ));
     }
 
     pub fn validate_input(&self) -> result::Result<()> {
@@ -274,7 +282,7 @@ impl RustfoilService {
 
     pub fn share_file(&self, file_id: String, is_shared: bool) {
         if !is_shared {
-            self.gdrive.share_file(file_id.as_str());
+            self.gdrive.as_ref().unwrap().share_file(file_id.as_str());
         }
     }
 
@@ -304,7 +312,12 @@ impl RustfoilService {
         let folder_id = &self.input.upload_folder_id;
         let input = self.input.output_path.as_path();
 
-        let res = self.gdrive.upload_file(input, folder_id.clone()).unwrap();
+        let res = self
+            .gdrive
+            .as_ref()
+            .unwrap()
+            .upload_file(input, folder_id.clone())
+            .unwrap();
 
         self.logger.log_info(
             format!(
@@ -319,11 +332,16 @@ impl RustfoilService {
         Ok(res)
     }
 
+    pub fn share_index(&self, file_id: String, is_shared: bool) -> std::io::Result<()> {
+        self.share_file(file_id, is_shared);
+        self.logger.log_info("Shared Index File")
+    }
+
     pub fn scan_folder(&mut self) -> result::Result<Vec<ParsedFileInfo>> {
         let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D")?;
 
         // Trigger Authentication if needed
-        self.gdrive.trigger_auth();
+        self.gdrive.as_ref().unwrap().trigger_auth();
 
         let pb = ProgressBar::new(!0);
         pb.enable_steady_tick(130);
@@ -342,6 +360,8 @@ impl RustfoilService {
             .iter()
             .map(|id| -> Vec<ParsedFileInfo> {
                 self.gdrive
+                    .as_ref()
+                    .unwrap()
                     .get_all_files_in_folder(id.to_owned().as_str(), !self.input.no_recursion)
                     .unwrap()
                     .into_iter()
@@ -375,6 +395,11 @@ impl RustfoilService {
 
         Ok(files)
     }
+
+    pub fn finalize(&self) -> std::io::Result<()> {
+        self.logger
+            .log_info(format!("Execution took {}", self.timer.elapsed().hhmmss()).as_str())
+    }
 }
 
 pub fn main() {
@@ -385,10 +410,11 @@ pub fn main() {
 }
 
 fn real_main() -> result::Result<()> {
-    // TODO: do validate checks before or move gdrive hub construction to later point so it doesn't trigger panics when credentials are missing
     let mut service = RustfoilService::new(Input::from_args());
 
     service.validate_input()?;
+
+    service.init();
 
     let files = service.scan_folder()?;
 
@@ -404,10 +430,11 @@ fn real_main() -> result::Result<()> {
         let (id, shared) = service.upload_index()?;
 
         if service.input.share_index {
-            service.share_file(id, shared);
-            service.logger.log_info("Shared Index File")?;
+            service.share_index(id, shared)?;
         }
     };
+
+    service.finalize()?;
 
     Ok(())
 }
