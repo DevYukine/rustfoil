@@ -2,6 +2,7 @@
 extern crate structopt;
 
 use crate::logging::LogLevel::{Debug, Info, Trace};
+use anyhow::Error;
 use compression::CompressionFlag;
 use encryption::EncryptionFlag;
 use error::RustfoilError;
@@ -149,9 +150,9 @@ impl RustfoilService {
         }
     }
 
-    pub fn validate_input(&self) -> std::result::Result<(), RustfoilError> {
+    pub fn validate_input(&self) -> result::Result<()> {
         if !&self.input.credentials.exists() {
-            return Err(RustfoilError::CredentialsMissing);
+            return Err(Error::new(RustfoilError::CredentialsMissing));
         }
 
         Ok(())
