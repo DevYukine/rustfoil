@@ -196,14 +196,13 @@ impl GDriveService {
     ) -> google_drive3::Result<Vec<FileInfo>> {
         let mut files = Vec::new();
 
-        for file in self.lsf(folder_id).unwrap() {
-            if file.size.is_some() {
-                let file_clone = file.clone();
+        for file in self.lsf(folder_id)? {
+            if let Some(_) = &file.size {
                 files.push(FileInfo::new(
-                    file.id.unwrap(),
-                    file.size.unwrap(),
-                    file.name.unwrap(),
-                    self.is_file_shared(file_clone)?,
+                    file.id.to_owned().unwrap(),
+                    file.size.to_owned().unwrap(),
+                    file.name.to_owned().unwrap(),
+                    self.is_file_shared(file)?,
                 ));
             }
         }
