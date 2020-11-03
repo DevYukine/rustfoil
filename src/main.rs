@@ -241,20 +241,18 @@ impl RustfoilService {
     pub fn output_index(&self, index: Index) -> result::Result<()> {
         let json = serde_json::to_string(&index)?;
         let compression = &self.input.compression;
-        let encryption_file_path_buf = self.input.public_key.clone();
-        let encryption = if self.input.public_key.is_some() {
-            EncryptionFlag::Encrypt
-        } else {
-            EncryptionFlag::NoEncrypt
+        let encryption = match self.input.public_key {
+            None => &EncryptionFlag::NoEncrypt,
+            Some(_) => &EncryptionFlag::Encrypt,
         };
 
         std::fs::write(
             &self.input.output_path,
             convert_to_tinfoil_format(
                 json.as_str(),
-                compression.clone(),
-                encryption.clone(),
-                encryption_file_path_buf,
+                compression,
+                encryption,
+                self.input.public_key.to_owned(),
             )?,
         )
         .expect("Couldn't write output file to Path");
@@ -262,7 +260,8 @@ impl RustfoilService {
         self.logger.log_info(
             format!(
                 "Finished writing {} to disk, using {} compression & {}encryption",
-                self.input
+                &self
+                    .input
                     .output_path
                     .file_name()
                     .unwrap()
@@ -285,7 +284,7 @@ impl RustfoilService {
         Ok(())
     }
 
-    pub fn share_file(&self, file_id: String, is_shared: bool) {
+    pub fn share_file(&self, file_id: String, is_shared: &bool) {
         if !is_shared {
             self.gdrive.as_ref().unwrap().share_file(file_id.as_str());
         }
@@ -303,8 +302,7 @@ impl RustfoilService {
         pb.set_message("Sharing");
 
         for file in files {
-            let parsed_file_clone = file.clone();
-            self.share_file(parsed_file_clone.id, parsed_file_clone.shared);
+            self.share_file(file.id, &file.shared);
             pb.inc(1);
         }
 
@@ -321,15 +319,13 @@ impl RustfoilService {
             .gdrive
             .as_ref()
             .unwrap()
-            .upload_file(input, folder_id.clone())
+            .upload_file(input, &self.input.upload_folder_id)
             .unwrap();
 
         self.logger.log_info(
             format!(
                 "Uploaded Index to {}",
-                destination = folder_id
-                    .as_ref()
-                    .unwrap_or("My Drive".to_string().borrow())
+                destination = folder_id.unwrap_or("My Drive".to_string())
             )
             .as_str(),
         )?;
@@ -338,7 +334,7 @@ impl RustfoilService {
     }
 
     pub fn share_index(&self, file_id: String, is_shared: bool) -> std::io::Result<()> {
-        self.share_file(file_id, is_shared);
+        self.share_file(file_id, &is_shared);
         self.logger.log_info("Shared Index File")
     }
 

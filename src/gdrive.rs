@@ -227,10 +227,10 @@ impl GDriveService {
     pub fn upload_file(
         &self,
         file_path: &Path,
-        dest_folder_id: Option<String>,
+        dest_folder_id: &Option<String>,
     ) -> google_drive3::Result<(String, bool)> {
-        let root_files = if dest_folder_id.is_some() {
-            self.lsf(dest_folder_id.unwrap().as_str())
+        let root_files = if let Some(folder_id) = dest_folder_id {
+            self.lsf(folder_id.as_str())
         } else {
             self.lsf_my_drive()
         }?;
@@ -284,8 +284,6 @@ impl GDriveService {
             }
         };
 
-        let id = res.id.clone().unwrap();
-
-        Ok((id, self.is_file_shared(res).unwrap()))
+        Ok((res.id.to_owned().unwrap(), self.is_file_shared(res)?))
     }
 }
