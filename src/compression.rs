@@ -6,7 +6,7 @@ use std::io::Write;
 use std::str::FromStr;
 use structopt::StructOpt;
 
-#[derive(StructOpt, Debug, Clone)]
+#[derive(StructOpt, Debug, Clone, Copy)]
 pub enum CompressionFlag {
     Off = 0x00,
     ZSTD = 0x0D,

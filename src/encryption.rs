@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::{BufReader, Read};
 use std::path::Path;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum EncryptionFlag {
     NoEncrypt = 0x00,
     Encrypt = 0xF0,
