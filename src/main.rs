@@ -183,7 +183,14 @@ impl RustfoilService {
         self.logger.log_debug("Added files to index")?;
 
         if self.input.success.is_some() {
-            index.success = Some(self.input.success.clone().unwrap());
+            index.success = Some(
+                self.input
+                    .success
+                    .clone()
+                    .unwrap()
+                    .replace("\\n", "\n")
+                    .replace("\\t", "\t"),
+            );
             self.logger.log_debug("Added success message to index")?;
         }
 
