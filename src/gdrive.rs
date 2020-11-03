@@ -176,6 +176,7 @@ impl GDriveService {
         self.drive_hub
             .permissions()
             .delete(file_id, permission_id)
+            .supports_all_drives(true)
             .add_scope(Full)
             .doit()
     }
