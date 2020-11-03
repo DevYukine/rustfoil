@@ -248,9 +248,10 @@ impl GDriveService {
         let mut existing_file: Option<File> = None;
 
         for file in root_files {
-            let file_clone = file.clone();
-            if file_clone.name.unwrap() == file_path_name.to_owned() {
-                existing_file = Some(file);
+            if let Some(name) = file.name.as_ref() {
+                if name == file_path_name {
+                    existing_file = Some(file);
+                }
             }
         }
 
