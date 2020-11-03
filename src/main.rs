@@ -325,7 +325,9 @@ impl RustfoilService {
         self.logger.log_info(
             format!(
                 "Uploaded Index to {}",
-                destination = folder_id.unwrap_or("My Drive".to_string())
+                destination = folder_id
+                    .as_ref()
+                    .unwrap_or("My Drive".to_string().borrow())
             )
             .as_str(),
         )?;
