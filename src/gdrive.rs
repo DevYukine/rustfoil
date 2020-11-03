@@ -255,42 +255,43 @@ impl GDriveService {
             }
         }
 
-        let res = if existing_file.is_some() {
-            let mut req = File::default();
+        let res = match existing_file {
+            Some(file) => {
+                let mut req = File::default();
 
-            let existing_file_unwrapped = existing_file.unwrap();
+                req.name = file.name;
 
-            req.name = existing_file_unwrapped.name;
+                self.drive_hub
+                    .files()
+                    .update(req, file.id.unwrap().as_str())
+                    .supports_all_drives(true)
+                    .supports_team_drives(true)
+                    .add_scope(Full)
+                    .upload_resumable(
+                        fs::File::open(file_path).unwrap(),
+                        "application/octet-stream".parse().unwrap(),
+                    )
+                    .unwrap()
+                    .1
+            }
+            None => {
+                let mut file = File::default();
 
-            self.drive_hub
-                .files()
-                .update(req, existing_file_unwrapped.id.unwrap().as_str())
-                .supports_all_drives(true)
-                .supports_team_drives(true)
-                .add_scope(Full)
-                .upload_resumable(
-                    fs::File::open(file_path).unwrap(),
-                    "application/octet-stream".parse().unwrap(),
-                )
-                .unwrap()
-                .1
-        } else {
-            let mut file = File::default();
+                file.name = Some(file_path_name.to_string());
 
-            file.name = Some(file_path_name.to_string());
-
-            self.drive_hub
-                .files()
-                .create(file)
-                .supports_team_drives(true)
-                .supports_all_drives(true)
-                .add_scope(Full)
-                .upload_resumable(
-                    fs::File::open(file_path).unwrap(),
-                    "application/octet-stream".parse().unwrap(),
-                )
-                .unwrap()
-                .1
+                self.drive_hub
+                    .files()
+                    .create(file)
+                    .supports_team_drives(true)
+                    .supports_all_drives(true)
+                    .add_scope(Full)
+                    .upload_resumable(
+                        fs::File::open(file_path).unwrap(),
+                        "application/octet-stream".parse().unwrap(),
+                    )
+                    .unwrap()
+                    .1
+            }
         };
 
         let id = res.id.clone().unwrap();
