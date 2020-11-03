@@ -105,7 +105,7 @@ impl GDriveService {
                 files.push(file);
             }
 
-            page_token = resp.1.next_page_token.clone();
+            page_token = resp.1.next_page_token;
 
             if page_token.is_none() {
                 break;
@@ -266,7 +266,6 @@ impl GDriveService {
                     .files()
                     .update(req, file.id.unwrap().as_str())
                     .supports_all_drives(true)
-                    .supports_team_drives(true)
                     .add_scope(Full)
                     .upload_resumable(
                         fs::File::open(file_path).unwrap(),
@@ -283,7 +282,6 @@ impl GDriveService {
                 self.drive_hub
                     .files()
                     .create(file)
-                    .supports_team_drives(true)
                     .supports_all_drives(true)
                     .add_scope(Full)
                     .upload_resumable(
