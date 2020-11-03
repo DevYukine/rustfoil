@@ -6,13 +6,6 @@ use std::fs;
 use std::path::Path;
 use yup_oauth2::{Authenticator, DefaultAuthenticatorDelegate, DiskTokenStorage, FlowType};
 
-trait ScopedRequest<'a, A, B> {
-    fn add_scope<T, S>(&self, scope: T) -> Box<Self>
-    where
-        T: Into<Option<S>>,
-        S: AsRef<str>;
-}
-
 pub struct GDriveService {
     drive_hub:
         DriveHub<Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>,
