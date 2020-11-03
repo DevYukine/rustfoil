@@ -144,7 +144,7 @@ impl GDriveService {
             for id in ids {
                 let mut vec: Vec<char> = id.chars().collect();
 
-                let last = vec.remove(vector.len() - 1);
+                let last = vec.remove(vec.len() - 1);
 
                 let mut all_numeric = true;
 
