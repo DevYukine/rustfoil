@@ -147,24 +147,22 @@ impl GDriveService {
 
         let file_id = file.id.unwrap();
 
-        if file.permission_ids.is_some() {
-            for id in file.permission_ids.unwrap() {
-                let original_vector: Vec<char> = id.chars().collect();
+        if let Some(ids) = file.permission_ids {
+            for id in ids {
+                let mut vec: Vec<char> = id.chars().collect();
 
-                let mut vector = original_vector.to_vec();
-
-                vector.remove(vector.len() - 1);
+                let last = vec.remove(vector.len() - 1);
 
                 let mut all_numeric = true;
 
-                for char in vector {
+                for char in vec {
                     all_numeric = char.is_numeric();
                     if !all_numeric {
                         break;
                     }
                 }
 
-                if *original_vector.last().unwrap() == 'k' && all_numeric {
+                if last == 'k' && all_numeric {
                     self.delete_file_permissions(file_id.as_str(), id.as_str())?;
                 }
 
