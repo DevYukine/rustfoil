@@ -182,55 +182,53 @@ impl RustfoilService {
 
         self.logger.log_debug("Added files to index")?;
 
-        if self.input.success.is_some() {
+        if let Some(success) = &self.input.success {
             index.success = Some(
-                self.input
-                    .success
-                    .clone()
-                    .unwrap()
+                success
+                    .to_string()
                     .replace("\\n", "\n")
                     .replace("\\t", "\t"),
             );
             self.logger.log_debug("Added success message to index")?;
         }
 
-        if self.input.referrer.is_some() {
-            index.referrer = Some(self.input.referrer.clone().unwrap());
+        if let Some(referrer) = &self.input.referrer {
+            index.referrer = Some(referrer.to_string());
             self.logger.log_debug("Added referrer to index")?;
         }
 
-        if self.input.google_api_key.is_some() {
-            index.google_api_key = Some(self.input.google_api_key.clone().unwrap());
+        if let Some(keys) = &self.input.google_api_key {
+            index.google_api_key = Some(keys.to_string());
             self.logger.log_debug("Added google api key to index")?;
         }
 
-        if self.input.one_fichier_keys.is_some() {
-            index.one_fichier_keys = Some(self.input.one_fichier_keys.clone().unwrap());
+        if let Some(keys) = &self.input.one_fichier_keys {
+            index.one_fichier_keys = Some(keys.to_owned());
             self.logger.log_debug("Added 1Fichier keys to index")?;
         }
 
-        if self.input.headers.is_some() {
-            index.headers = Some(self.input.headers.clone().unwrap());
+        if let Some(headers) = &self.input.headers {
+            index.headers = Some(headers.to_owned());
             self.logger.log_debug("Added headers to index")?;
         }
 
-        if self.input.min_version.is_some() {
-            index.version = Some(self.input.min_version.clone().unwrap());
+        if let Some(version) = &self.input.min_version {
+            index.version = Some(version.to_owned());
             self.logger.log_debug("Added minimum version to index")?;
         }
 
-        if self.input.theme_blacklist.is_some() {
-            index.theme_blacklist = Some(self.input.theme_blacklist.clone().unwrap());
+        if let Some(theme) = &self.input.theme_blacklist {
+            index.theme_blacklist = Some(theme.to_owned());
             self.logger.log_debug("Added theme blacklist to index")?;
         }
 
-        if self.input.theme_whitelist.is_some() {
-            index.theme_whitelist = Some(self.input.theme_whitelist.clone().unwrap());
+        if let Some(theme) = &self.input.theme_whitelist {
+            index.theme_whitelist = Some(theme.to_owned());
             self.logger.log_debug("Added theme whitelist to index")?;
         }
 
-        if self.input.theme_error.is_some() {
-            index.theme_error = Some(self.input.theme_error.clone().unwrap());
+        if let Some(error) = &self.input.theme_error {
+            index.theme_error = Some(error.to_string());
             self.logger
                 .log_debug("Added theme error message to index")?;
         }
