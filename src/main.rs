@@ -240,10 +240,10 @@ impl RustfoilService {
 
     pub fn output_index(&self, index: Index) -> result::Result<()> {
         let json = serde_json::to_string(&index)?;
-        let compression = &self.input.compression;
+        let compression = self.input.compression.to_owned();
         let encryption = match self.input.public_key {
-            None => &EncryptionFlag::NoEncrypt,
-            Some(_) => &EncryptionFlag::Encrypt,
+            None => EncryptionFlag::NoEncrypt,
+            Some(_) => EncryptionFlag::Encrypt,
         };
 
         std::fs::write(

@@ -7,8 +7,8 @@ use std::path::PathBuf;
 
 pub fn convert_to_tinfoil_format(
     json: &str,
-    compression: &CompressionFlag,
-    encryption: &EncryptionFlag,
+    compression: CompressionFlag,
+    encryption: EncryptionFlag,
     encryption_file_path_buf: Option<PathBuf>,
 ) -> result::Result<Vec<u8>> {
     let mut data = compression.compress(json)?;
