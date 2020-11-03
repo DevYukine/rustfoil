@@ -228,6 +228,7 @@ impl GDriveService {
         self.drive_hub
             .permissions()
             .create(perms, file_id)
+            .supports_all_drives(true)
             .add_scope(Full)
             .doit()
     }
