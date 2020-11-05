@@ -270,6 +270,12 @@ impl GDriveService {
 
                 file.name = Some(file_path_name.to_string());
 
+                if let Some(id) = dest_folder_id {
+                    let mut vec = Vec::new();
+                    vec.push(id.to_owned());
+                    file.parents = Some(vec);
+                }
+
                 self.drive_hub
                     .files()
                     .create(file)
