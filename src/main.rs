@@ -45,7 +45,7 @@ pub struct Input {
     token: PathBuf,
 
     /// Path to output index file
-    #[structopt(short = "o", long, parse(from_os_str), default_value = "index.tlf")]
+    #[structopt(short = "o", long, parse(from_os_str), default_value = "index.tfl")]
     output_path: PathBuf,
 
     /// Share all files inside the index file
