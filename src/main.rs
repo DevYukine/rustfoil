@@ -408,7 +408,10 @@ impl RustfoilService {
 pub fn main() {
     match real_main() {
         Ok(_) => std::process::exit(0),
-        Err(_) => std::process::exit(1),
+        Err(err) => {
+            eprintln!("Error: {}", err);
+            std::process::exit(1)
+        }
     }
 }
 
