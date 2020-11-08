@@ -15,6 +15,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use logging::Logger;
 use regex::Regex;
 use std::borrow::Borrow;
+use std::fs;
 use std::path::PathBuf;
 use std::time::Instant;
 use structopt::StructOpt;
@@ -246,7 +247,7 @@ impl RustfoilService {
             Some(_) => EncryptionFlag::Encrypt,
         };
 
-        std::fs::write(
+        fs::write(
             &self.input.output_path,
             convert_to_tinfoil_format(
                 json.as_str(),
@@ -254,8 +255,7 @@ impl RustfoilService {
                 encryption,
                 self.input.public_key.to_owned(),
             )?,
-        )
-        .expect("Couldn't write output file to Path");
+        )?;
 
         self.logger.log_info(
             format!(
