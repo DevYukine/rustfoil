@@ -380,7 +380,8 @@ impl RustfoilService {
                                 .take(4)
                                 .collect();
 
-                            keep = vec![".nsp", ".nsz", ".xci", ".xcz"].contains(&&*extension);
+                            keep = vec![".nsp", ".nsz", ".xci", ".xcz"]
+                                .contains(&extension.as_str().borrow());
                         }
 
                         if !self.input.add_nsw_files_without_title_id {
