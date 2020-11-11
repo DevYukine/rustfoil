@@ -337,7 +337,13 @@ impl RustfoilService {
 
     pub fn share_index(&self, file_id: String, is_shared: bool) -> std::io::Result<()> {
         self.share_file(file_id, &is_shared);
-        self.logger.log_info("Shared Index File")
+        self.logger.log_info(
+            format!(
+                "Shared Index File, accessible at https://drive.google.com/uc?id={}",
+                file_id
+            )
+            .as_str(),
+        )
     }
 
     pub fn scan_folder(&mut self) -> result::Result<Vec<ParsedFileInfo>> {
