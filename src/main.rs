@@ -284,7 +284,7 @@ impl RustfoilService {
         Ok(())
     }
 
-    pub fn share_file(&self, file_id: String, is_shared: &bool) {
+    pub fn share_file(&self, file_id: &String, is_shared: &bool) {
         if !is_shared {
             self.gdrive.as_ref().unwrap().share_file(file_id.as_str());
         }
@@ -302,7 +302,7 @@ impl RustfoilService {
         pb.set_message("Sharing");
 
         for file in files {
-            self.share_file(file.id, &file.shared);
+            self.share_file(&file.id, &file.shared);
             pb.inc(1);
         }
 
@@ -336,7 +336,7 @@ impl RustfoilService {
     }
 
     pub fn share_index(&self, file_id: String, is_shared: bool) -> std::io::Result<()> {
-        self.share_file(file_id, &is_shared);
+        self.share_file(&file_id, &is_shared);
         self.logger.log_info(
             format!(
                 "Shared Index File, accessible at https://drive.google.com/uc?id={}",
