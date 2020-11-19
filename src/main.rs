@@ -412,17 +412,7 @@ impl RustfoilService {
     }
 }
 
-pub fn main() {
-    match real_main() {
-        Ok(_) => std::process::exit(0),
-        Err(err) => {
-            eprintln!("Error: {}", err);
-            std::process::exit(1)
-        }
-    }
-}
-
-fn real_main() -> result::Result<()> {
+pub fn main() -> result::Result<()> {
     let mut service = RustfoilService::new(Input::from_args());
 
     service.validate_input()?;
