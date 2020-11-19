@@ -71,12 +71,11 @@ pub struct ParsedFileInfo {
 
 impl ParsedFileInfo {
     pub fn new(info: FileInfo) -> ParsedFileInfo {
-        let name_encoded = utf8_percent_encode(info.name.as_str(), NON_ALPHANUMERIC).to_string();
         ParsedFileInfo {
+            name_encoded: utf8_percent_encode(info.name.as_str(), NON_ALPHANUMERIC).to_string(),
             id: info.id,
             size: info.size,
             name: info.name,
-            name_encoded,
             shared: info.shared,
         }
     }
