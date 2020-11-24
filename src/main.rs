@@ -374,7 +374,7 @@ impl RustfoilService {
         )
     }
 
-    pub fn scan_folder(&mut self) -> result::Result<ScanResult> {
+    pub fn scan_folder(&mut self) -> ScanResult {
         // Trigger Authentication if needed
         self.gdrive.as_ref().unwrap().trigger_auth();
 
@@ -412,7 +412,7 @@ impl RustfoilService {
 
         pb.finish_with_message(format!("Scanned {} files", scan.files.len()).as_str());
 
-        Ok(scan)
+        scan
     }
 
     pub fn parse_files(&self, files: Vec<FileInfo>) -> result::Result<Vec<ParsedFileInfo>> {
@@ -458,7 +458,7 @@ pub fn main() -> result::Result<()> {
 
     service.init();
 
-    let scan_result = service.scan_folder()?;
+    let scan_result = service.scan_folder();
 
     let files = service.parse_files(scan_result.files)?;
 
