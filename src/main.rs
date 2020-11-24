@@ -467,9 +467,9 @@ pub fn main() -> result::Result<()> {
     service.output_index(*index)?;
 
     if service.input.share_files {
-        service.logger.log_warning(
-            "share_files is deprecated in favor of share_folders due to the speed difference",
-        )?;
+        service
+            .logger
+            .log_warning("Consider switching to share-folders if you want faster sharing")?;
         service.share_files(files)?;
     }
 
