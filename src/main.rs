@@ -410,7 +410,7 @@ impl RustfoilService {
                 },
             );
 
-        pb.finish_with_message(format!("Scanned {} files", scan.files.len()).as_str());
+        pb.finish_with_message(format!("Scanned {} file(s)", scan.files.len()).as_str());
 
         scan
     }
