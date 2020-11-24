@@ -11,11 +11,35 @@ pub struct GDriveService {
         DriveHub<Client, Authenticator<DefaultAuthenticatorDelegate, DiskTokenStorage, Client>>,
 }
 
+#[derive(Clone)]
 pub struct FileInfo {
     pub id: String,
     pub size: String,
     pub name: String,
     pub shared: bool,
+}
+
+pub struct FolderInfo {
+    pub id: String,
+    pub name: String,
+    pub shared: bool,
+}
+
+pub struct ScanResult {
+    pub files: Vec<FileInfo>,
+    pub folders: Vec<FolderInfo>,
+}
+
+impl ScanResult {
+    pub fn new(files: Vec<FileInfo>, folders: Vec<FolderInfo>) -> ScanResult {
+        ScanResult { files, folders }
+    }
+}
+
+impl FolderInfo {
+    pub fn new(id: String, name: String, shared: bool) -> FolderInfo {
+        FolderInfo { id, name, shared }
+    }
 }
 
 impl FileInfo {
@@ -185,8 +209,9 @@ impl GDriveService {
         &self,
         folder_id: &str,
         recursion: bool,
-    ) -> google_drive3::Result<Vec<FileInfo>> {
+    ) -> google_drive3::Result<ScanResult> {
         let mut files = Vec::new();
+        let mut folders = Vec::new();
 
         for file in self.lsf(folder_id)? {
             if let Some(_) = &file.size {
@@ -201,15 +226,22 @@ impl GDriveService {
 
         if recursion {
             for folder in self.lsd(folder_id).unwrap() {
-                for file_info in
-                    self.get_all_files_in_folder(folder.id.unwrap().as_str(), recursion)?
+                let folder_id = folder.id.to_owned().unwrap();
+                for file_info in self
+                    .get_all_files_in_folder(folder_id.as_str(), recursion)?
+                    .files
                 {
                     files.push(file_info);
                 }
+                folders.push(FolderInfo::new(
+                    folder_id,
+                    folder.name.to_owned().unwrap(),
+                    self.is_file_shared(folder)?,
+                ));
             }
         }
 
-        Ok(files)
+        Ok(ScanResult::new(files, folders))
     }
 
     pub fn share_file(&self, file_id: &str) -> google_drive3::Result<(Response, Permission)> {

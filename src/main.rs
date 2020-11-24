@@ -1,6 +1,7 @@
 #[cfg_attr(test, macro_use)]
 extern crate structopt;
 
+use crate::gdrive::{FileInfo, FolderInfo, ScanResult};
 use crate::logging::LogLevel::{Debug, Info, Trace};
 use anyhow::Error;
 use compression::CompressionFlag;
@@ -52,6 +53,10 @@ pub struct Input {
     /// Share all files inside the index file
     #[structopt(long)]
     share_files: bool,
+
+    /// Share all folders inside the provided folders
+    #[structopt(long)]
+    share_folders: bool,
 
     /// Scans for files only in top directory for each Folder ID entered
     #[structopt(long)]
@@ -295,7 +300,7 @@ impl RustfoilService {
 
         pb.set_style(
             ProgressStyle::default_bar()
-                .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {msg} {pos:>7}/{len:7} Files")
+                .template("[{elapsed_precise}] [{bar:40.cyan/blue}] {msg} {pos:>7}/{len:7} File(s)")
                 .progress_chars("#>-"),
         );
 
@@ -303,6 +308,29 @@ impl RustfoilService {
 
         for file in files {
             self.share_file(&file.id, &file.shared);
+            pb.inc(1);
+        }
+
+        pb.finish_with_message("Finished Sharing");
+
+        Ok(())
+    }
+
+    pub fn share_folder(&self, folders: Vec<FolderInfo>) -> result::Result<()> {
+        let pb = ProgressBar::new(folders.len() as u64);
+
+        pb.set_style(
+            ProgressStyle::default_bar()
+                .template(
+                    "[{elapsed_precise}] [{bar:40.cyan/blue}] {msg} {pos:>3}/{len:3} Folder(s)",
+                )
+                .progress_chars("#>-"),
+        );
+
+        pb.set_message("Sharing");
+
+        for folder in folders {
+            self.share_file(&folder.id, &folder.shared);
             pb.inc(1);
         }
 
@@ -346,9 +374,7 @@ impl RustfoilService {
         )
     }
 
-    pub fn scan_folder(&mut self) -> result::Result<Vec<ParsedFileInfo>> {
-        let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D")?;
-
+    pub fn scan_folder(&mut self) -> result::Result<ScanResult> {
         // Trigger Authentication if needed
         self.gdrive.as_ref().unwrap().trigger_auth();
 
@@ -363,47 +389,60 @@ impl RustfoilService {
         );
         pb.set_message("Scanning...");
 
-        let files: Vec<ParsedFileInfo> = self
+        let scan = self
             .input
             .folder_ids
-            .iter()
-            .map(|id| -> Vec<ParsedFileInfo> {
+            .clone()
+            .into_iter()
+            .map(|id| -> ScanResult {
                 self.gdrive
                     .as_ref()
                     .unwrap()
                     .get_all_files_in_folder(id.to_owned().as_str(), !self.input.no_recursion)
                     .unwrap()
-                    .into_iter()
-                    .map(|file_info| ParsedFileInfo::new(file_info))
-                    .filter(|file| {
-                        let mut keep = true;
-
-                        if !self.input.add_non_nsw_files {
-                            let extension: String = file
-                                .name
-                                .chars()
-                                .skip(file.name.len() - 4)
-                                .take(4)
-                                .collect();
-
-                            keep = vec![".nsp", ".nsz", ".xci", ".xcz"]
-                                .contains(&extension.as_str().borrow());
-                        }
-
-                        if !self.input.add_nsw_files_without_title_id {
-                            keep = re.is_match(file.name_encoded.as_str());
-                        }
-
-                        keep
-                    })
-                    .collect()
             })
-            .flatten()
-            .collect();
+            .fold(
+                ScanResult::new(Vec::new(), Vec::new()),
+                |mut old, mut new| {
+                    old.files.append(&mut new.files);
+                    old.folders.append(&mut new.folders);
+                    old
+                },
+            );
 
-        pb.finish_with_message(&*format!("Scanned {} files", files.len()));
+        pb.finish_with_message(format!("Scanned {} files", scan.files.len()).as_str());
 
-        Ok(files)
+        Ok(scan)
+    }
+
+    pub fn parse_files(&self, files: Vec<FileInfo>) -> result::Result<Vec<ParsedFileInfo>> {
+        let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D")?;
+
+        Ok(files
+            .into_iter()
+            .map(|file_info| ParsedFileInfo::new(file_info))
+            .filter(|file| {
+                let mut keep = true;
+
+                if !self.input.add_non_nsw_files {
+                    let extension: String = file
+                        .name
+                        .chars()
+                        .skip(file.name.len() - 4)
+                        .take(4)
+                        .collect();
+
+                    keep =
+                        vec![".nsp", ".nsz", ".xci", ".xcz"].contains(&extension.as_str().borrow());
+                }
+
+                if !self.input.add_nsw_files_without_title_id {
+                    keep = re.is_match(file.name_encoded.as_str());
+                }
+
+                keep
+            })
+            .collect())
     }
 
     pub fn finalize(&self) -> std::io::Result<()> {
@@ -419,14 +458,23 @@ pub fn main() -> result::Result<()> {
 
     service.init();
 
-    let files = service.scan_folder()?;
+    let scan_result = service.scan_folder()?;
+
+    let files = service.parse_files(scan_result.files)?;
 
     let index = service.generate_index(files.to_owned())?;
 
     service.output_index(*index)?;
 
     if service.input.share_files {
+        service.logger.log_warning(
+            "share_files is deprecated in favor of share_folders due to the speed difference",
+        )?;
         service.share_files(files)?;
+    }
+
+    if service.input.share_folders {
+        service.share_folder(scan_result.folders)?;
     }
 
     if service.input.upload_my_drive || service.input.upload_folder_id.is_some() {
