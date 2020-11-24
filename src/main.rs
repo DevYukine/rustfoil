@@ -416,7 +416,7 @@ impl RustfoilService {
     }
 
     pub fn parse_files(&self, files: Vec<FileInfo>) -> result::Result<Vec<ParsedFileInfo>> {
-        let re = Regex::new("%5B[0-9A-Fa-f]{16}%5D")?;
+        let regex = Regex::new("%5B[0-9A-Fa-f]{16}%5D")?;
 
         Ok(files
             .into_iter()
@@ -437,7 +437,7 @@ impl RustfoilService {
                 }
 
                 if !self.input.add_nsw_files_without_title_id {
-                    keep = re.is_match(file.name_encoded.as_str());
+                    keep = regex.is_match(file.name_encoded.as_str());
                 }
 
                 keep
