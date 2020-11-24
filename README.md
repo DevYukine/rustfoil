@@ -36,9 +36,10 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 - [x] Upload index to own gdrive
 - [x] Upload index to team drive
 
-### Share Files
+### Sharing
 
 - [x] Share files inside index
+- [x] Share folders
 - [x] Share uploaded index
 
 ### Error Handling
