@@ -418,7 +418,7 @@ impl RustfoilService {
     pub fn parse_files(&self, files: Vec<FileInfo>) -> result::Result<Vec<ParsedFileInfo>> {
         let regex = Regex::new("%5B[0-9A-Fa-f]{16}%5D")?;
 
-        Ok(files
+        let parsed: Vec<ParsedFileInfo> = files
             .into_iter()
             .map(|file_info| ParsedFileInfo::new(file_info))
             .filter(|file| {
@@ -442,7 +442,12 @@ impl RustfoilService {
 
                 keep
             })
-            .collect())
+            .collect();
+
+        self.logger
+            .log_info(format!("Parsed {} file(s)", parsed.len()).as_str())?;
+
+        Ok(parsed)
     }
 
     pub fn finalize(&self) -> std::io::Result<()> {
