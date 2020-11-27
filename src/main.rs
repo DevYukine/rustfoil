@@ -3,6 +3,7 @@ extern crate structopt;
 
 use crate::gdrive::{FileInfo, FolderInfo, ScanResult};
 use crate::logging::LogLevel::{Debug, Info, Trace};
+use crate::token::{TinfoilToken, TokenFile};
 use anyhow::Error;
 use compression::CompressionFlag;
 use encryption::EncryptionFlag;
@@ -17,7 +18,8 @@ use logging::Logger;
 use regex::Regex;
 use std::borrow::Borrow;
 use std::fs;
-use std::path::PathBuf;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 use structopt::StructOpt;
 use tinfoil::convert_to_tinfoil_format;
@@ -30,6 +32,7 @@ mod index;
 mod logging;
 mod result;
 mod tinfoil;
+mod token;
 
 /// Script that will allow you to generate an index file with Google Drive file links for use with Tinfoil
 #[derive(StructOpt, Debug)]
@@ -129,6 +132,14 @@ pub struct Input {
     /// If OAuth should be done headless
     #[structopt(long)]
     headless: bool,
+
+    /// If Tinfoil authentication files should be generated
+    #[structopt(long)]
+    tinfoil_auth: bool,
+
+    /// Path to Tinfoil authentication files
+    #[structopt(long, parse(from_os_str), default_value = "COPY_TO_SD/switch/tinfoil")]
+    tinfoil_auth_path: PathBuf,
 
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
@@ -450,6 +461,46 @@ impl RustfoilService {
         Ok(parsed)
     }
 
+    pub fn copy_tinfoil_files(&self) -> result::Result<()> {
+        let file = fs::read_to_string(self.input.token.to_owned())?;
+        let mut auth_file: TokenFile = serde_json::from_str(file.as_str())?;
+
+        let token = auth_file.tokens.remove(0).token;
+
+        let tinfoil_auth = TinfoilToken {
+            access_token: token.access_token,
+            refresh_token: token.refresh_token,
+        };
+
+        let tinfoil_auth_path = self.input.tinfoil_auth_path.to_owned();
+
+        fs::create_dir_all(self.input.tinfoil_auth_path.to_owned())?;
+
+        let mut token_path = tinfoil_auth_path.clone();
+
+        token_path.push("gdrive.token");
+
+        let mut token_file = fs::File::create(token_path)?;
+
+        token_file.write_all(serde_json::to_string(&tinfoil_auth)?.as_bytes())?;
+
+        let mut credentials = tinfoil_auth_path.clone();
+
+        credentials.push(self.input.credentials.to_owned());
+
+        fs::copy(self.input.credentials.to_path_buf(), credentials)?;
+
+        self.logger.log_info(
+            format!(
+                "Copied tinfoil files to {}",
+                tinfoil_auth_path.to_str().unwrap()
+            )
+            .as_str(),
+        )?;
+
+        Ok(())
+    }
+
     pub fn finalize(&self) -> std::io::Result<()> {
         self.logger
             .log_info(format!("Execution took {}", self.timer.elapsed().hhmmss()).as_str())
@@ -489,6 +540,10 @@ pub fn main() -> result::Result<()> {
             service.share_index(id, shared)?;
         }
     };
+
+    if service.input.tinfoil_auth {
+        service.copy_tinfoil_files()?;
+    }
 
     service.finalize()?;
 
