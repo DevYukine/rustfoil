@@ -5,26 +5,20 @@ use serde_with::skip_serializing_none;
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Index {
     pub files: Option<Vec<FileEntry>>,
     pub directories: Option<Vec<String>>,
     pub success: Option<String>,
     pub referrer: Option<String>,
-    #[serde(rename(deserialize = "googleApiKey"))]
     pub google_api_key: Option<String>,
-    #[serde(rename(deserialize = "oneFichierKeys"))]
     pub one_fichier_keys: Option<Vec<String>>,
     pub headers: Option<Vec<String>>,
     pub version: Option<f64>,
-    #[serde(rename(deserialize = "clientCertPub"))]
     pub client_cert_pub: Option<String>,
-    #[serde(rename(deserialize = "clientCertKey"))]
     pub client_cert_key: Option<String>,
-    #[serde(rename(deserialize = "themeBlackList"))]
     pub theme_blacklist: Option<Vec<String>>,
-    #[serde(rename(deserialize = "themeWhiteList"))]
     pub theme_whitelist: Option<Vec<String>>,
-    #[serde(rename(deserialize = "themeError"))]
     pub theme_error: Option<String>,
 }
 
