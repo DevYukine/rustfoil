@@ -1,19 +1,17 @@
 use crate::result::Result;
-use core::fmt;
 use flate2::write::ZlibEncoder;
 use flate2::Compression;
 use std::io::Write;
-use std::str::FromStr;
-use structopt::StructOpt;
 use structopt::clap::arg_enum;
+use structopt::StructOpt;
 
 arg_enum! {
-	#[derive(StructOpt, Debug, Clone, Copy)]
-	pub enum CompressionFlag {
-    	Off = 0x00,
-    	ZSTD = 0x0D,
-    	Zlib = 0x0E,
-	}
+    #[derive(StructOpt, Debug, Clone, Copy)]
+    pub enum CompressionFlag {
+        Off = 0x00,
+        ZSTD = 0x0D,
+        Zlib = 0x0E,
+    }
 }
 
 impl CompressionFlag {

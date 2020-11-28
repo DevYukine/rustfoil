@@ -19,7 +19,7 @@ use regex::Regex;
 use std::borrow::Borrow;
 use std::fs;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Instant;
 use structopt::StructOpt;
 use tinfoil::convert_to_tinfoil_format;
