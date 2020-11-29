@@ -17,7 +17,9 @@ pub struct Index {
     pub version: Option<f64>,
     pub client_cert_pub: Option<String>,
     pub client_cert_key: Option<String>,
+    #[serde(rename = "themeBlackList")]
     pub theme_blacklist: Option<Vec<String>>,
+    #[serde(rename = "themeWhiteList")]
     pub theme_whitelist: Option<Vec<String>>,
     pub theme_error: Option<String>,
 }
