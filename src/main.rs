@@ -19,7 +19,7 @@ use regex::Regex;
 use std::borrow::Borrow;
 use std::fs;
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Instant;
 use structopt::StructOpt;
 use tinfoil::convert_to_tinfoil_format;
@@ -126,7 +126,7 @@ pub struct Input {
     upload_my_drive: bool,
 
     /// Which compression should be used for the index file
-    #[structopt(long, default_value = "zstd")]
+    #[structopt(long, possible_values = &CompressionFlag::variants(), case_insensitive = true, default_value = "zstd")]
     compression: CompressionFlag,
 
     /// If OAuth should be done headless
