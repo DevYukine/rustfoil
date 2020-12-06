@@ -11,7 +11,7 @@ env:
 jobs:
     changelog:
         outputs:
-            upload_uri: ${{ steps.changelog.outputs.upload_url }}
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
         name: Create Changelog
         runs-on: ubuntu-latest
         steps:
@@ -24,6 +24,7 @@ jobs:
                   github-token: ${{ secrets.github_token }}
                   version-file: './version.json'
             - name: Create Release
+              id: create_release
               uses: actions/create-release@v1
               if: ${{ steps.changelog.outputs.skipped == 'false' }}
               env:
@@ -75,7 +76,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  upload_url: ${{ needs.changelog.outputs.upload_uri }}
+                  upload_url: ${{ needs.changelog.outputs.upload_url }}
                   asset_path: target/${{ matrix.target.name }}/release
                   asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
                   asset_content_type: application/x-elf
@@ -118,7 +119,7 @@ jobs:
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  upload_url: ${{ needs.changelog.outputs.upload_uri }}
+                  upload_url: ${{ needs.changelog.outputs.upload_url }}
                   asset_path: target/${{ matrix.target.name }}/release
                   asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
                   asset_content_type: application/x-msdownload
