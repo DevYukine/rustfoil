@@ -1,12 +1,34 @@
-on: [push, pull_request]
+on:
+    push:
+        branches:
+            - stable
 
-name: Build Commit
+name: Create Release
 
 env:
     CARGO_TERM_COLOR: always
 
 jobs:
-    linux:
+    changelog:
+        name: Create Changelog
+        runs-on: ubuntu-latest
+        steps:
+            - name: Create Conventional Changelog
+              id: changelog
+              uses: TriPSs/conventional-changelog-action@v3
+              with:
+                  github-token: ${{ secrets.github_token }}
+            - name: Create Release
+              uses: actions/create-release@v1
+              if: ${{ steps.changelog.outputs.skipped == 'false' }}
+              env:
+                  GITHUB_TOKEN: ${{ secrets.github_token }}
+              with:
+                  tag_name: ${{ steps.changelog.outputs.tag }}
+                  release_name: ${{ steps.changelog.outputs.tag }}
+                  body: ${{ steps.changelog.outputs.clean_changelog }}
+
+    build_linux:
         name: Linux Build
         runs-on: ubuntu-latest
         strategy:
@@ -42,13 +64,16 @@ jobs:
               with:
                   command: build
                   args: --release --target=${{ matrix.target.name }}
-            - name: Upload Action Artifact
-              uses: actions/upload-artifact@v2
+            - name: Upload Release Asset
+              uses: actions/upload-release-asset@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
-                  path: target/${{ matrix.target.name }}/release/rustfoil
+                  asset_path: target/${{ matrix.target.name }}/release
+                  asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
+                  asset_content_type: application/x-elf
 
-    windows:
+    build_windows:
         name: Windows Build
         runs-on: windows-latest
         strategy:
@@ -80,8 +105,11 @@ jobs:
               with:
                   command: build
                   args: --release --target=${{ matrix.target.name }}
-            - name: Upload Action Artifact
-              uses: actions/upload-artifact@v2
+            - name: Upload Release Asset
+              uses: actions/upload-release-asset@v1
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
-                  name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
-                  path: target/${{ matrix.target.name }}/release/rustfoil.exe
+                  asset_path: target/${{ matrix.target.name }}/release
+                  asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
+                  asset_content_type: application/x-msdownload
