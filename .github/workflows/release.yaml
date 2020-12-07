@@ -22,7 +22,8 @@ jobs:
               uses: TriPSs/conventional-changelog-action@v3
               with:
                   github-token: ${{ secrets.github_token }}
-                  version-file: './version.json'
+                  version-file: './Cargo.toml'
+                  version-path: "package.version"
             - name: Create Release
               id: create_release
               uses: actions/create-release@v1
