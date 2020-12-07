@@ -21,7 +21,6 @@ pub struct FileInfo {
 
 pub struct FolderInfo {
     pub id: String,
-    pub name: String,
     pub shared: bool,
 }
 
@@ -37,8 +36,8 @@ impl ScanResult {
 }
 
 impl FolderInfo {
-    pub fn new(id: String, name: String, shared: bool) -> FolderInfo {
-        FolderInfo { id, name, shared }
+    pub fn new(id: String, shared: bool) -> FolderInfo {
+        FolderInfo { id, shared }
     }
 }
 
@@ -233,11 +232,7 @@ impl GDriveService {
                 {
                     files.push(file_info);
                 }
-                folders.push(FolderInfo::new(
-                    folder_id,
-                    folder.name.to_owned().unwrap(),
-                    self.is_file_shared(folder)?,
-                ));
+                folders.push(FolderInfo::new(folder_id, self.is_file_shared(folder)?));
             }
         }
 
