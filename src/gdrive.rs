@@ -82,6 +82,15 @@ impl GDriveService {
         self.drive_hub.about().get().add_scope(Full).doit()
     }
 
+    pub fn get_file(&self, file_id: &str) -> google_drive3::Result<(Response, File)> {
+        self.drive_hub
+            .files()
+            .get(file_id)
+            .supports_all_drives(true)
+            .add_scope(Full)
+            .doit()
+    }
+
     pub fn ls(
         &self,
         folder_id: &str,
@@ -107,7 +116,10 @@ impl GDriveService {
                 .page_size(1000)
                 .supports_all_drives(true)
                 .include_items_from_all_drives(true)
-                .param("fields", "files(id,name,size,permissionIds),nextPageToken");
+                .param(
+                    "fields",
+                    "files(id,name,size,permissionIds,shortcutDetails),nextPageToken",
+                );
 
             let resp = match page_token {
                 None => req.add_scope(Full).doit()?,
@@ -155,6 +167,13 @@ impl GDriveService {
         self.ls(
             "root",
             Option::from("not mimeType contains \"application/vnd.google-apps.folder\""),
+        )
+    }
+
+    pub fn lss(&self, folder_id: &str) -> google_drive3::Result<Vec<File>> {
+        self.ls(
+            folder_id,
+            Option::from("mimeType contains \"application/vnd.google-apps.shortcut\""),
         )
     }
 
@@ -224,6 +243,27 @@ impl GDriveService {
         }
 
         if recursion {
+            for shortcut in self.lss(folder_id).unwrap() {
+                let info = shortcut.shortcut_details.unwrap();
+
+                if let Some(mime_type) = &info.target_mime_type {
+                    if mime_type == "application/vnd.google-apps.folder" {
+                        if let Some(id) = &info.target_id {
+                            let folder = self.get_file(id)?.1;
+
+                            folders.push(FolderInfo::new(
+                                folder.id.to_owned().unwrap(),
+                                self.is_file_shared(folder)?,
+                            ));
+
+                            for file_info in self.get_all_files_in_folder(id, recursion)?.files {
+                                files.push(file_info);
+                            }
+                        };
+                    };
+                };
+            }
+
             for folder in self.lsd(folder_id).unwrap() {
                 let folder_id = folder.id.to_owned().unwrap();
                 for file_info in self
