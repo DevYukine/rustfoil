@@ -42,13 +42,20 @@ jobs:
         strategy:
             matrix:
                 target:
-                    - name: i686-unknown-linux-gnu
+                    - build_target: i686-unknown-linux-gnu
                       arch: x86
-                    - name: x86_64-unknown-linux-gnu
+                      lib: gnu
+                    - build_target: x86_64-unknown-linux-gnu
                       arch: x64
+                      lib: gnu
+                    - build_target: x86_64-unknown-linux-musl
+                      arch: x64
+                      lib: musl
         steps:
             - name: Checkout Source code
               uses: actions/checkout@v2
+              with:
+                  ref: "stable"
             - name: Cache Rust dependencies
               uses: actions/cache@v2
               with:
@@ -56,12 +63,12 @@ jobs:
                       ~/.cargo/registry
                       ~/.cargo/git
                       target
-                  key: ${{ matrix.target.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
             - name: Install Rust Toolchain
               uses: actions-rs/toolchain@v1
               with:
                   toolchain: stable
-                  target: ${{ matrix.target.name }}
+                  target: ${{ matrix.target.build_target }}
                   override: true
             - name: Install Build-Tools
               run: sudo apt-get install build-essential gcc-multilib
@@ -71,14 +78,14 @@ jobs:
                   TARGET_CC: clang
               with:
                   command: build
-                  args: --release --target=${{ matrix.target.name }}
+                  args: --release --target=${{ matrix.target.build_target }}
             - name: Upload Release Asset
               uses: actions/upload-release-asset@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ needs.changelog.outputs.upload_url }}
-                  asset_path: target/${{ matrix.target.name }}/release/rustfoil
+                  asset_path: target/${{ matrix.target.build_target }}/release/rustfoil
                   asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
                   asset_content_type: application/x-elf
 
@@ -89,13 +96,15 @@ jobs:
         strategy:
             matrix:
                 target:
-                    - name: i686-pc-windows-msvc
+                    - build_target: i686-pc-windows-msvc
                       arch: x86
-                    - name: x86_64-pc-windows-msvc
+                    - build_target: x86_64-pc-windows-msvc
                       arch: x64
         steps:
             - name: Checkout Source code
               uses: actions/checkout@v2
+              with:
+                  ref: "stable"
             - name: Cache Rust dependencies
               uses: actions/cache@v2
               with:
@@ -103,24 +112,24 @@ jobs:
                       ~/.cargo/registry
                       ~/.cargo/git
                       target
-                  key: ${{ matrix.target.name }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
             - name: Install Rust Toolchain
               uses: actions-rs/toolchain@v1
               with:
                   toolchain: stable
-                  target: ${{ matrix.target.name }}
+                  target: ${{ matrix.target.build_target }}
                   override: true
             - name: Build
               uses: actions-rs/cargo@v1
               with:
                   command: build
-                  args: --release --target=${{ matrix.target.name }}
+                  args: --release --target=${{ matrix.target.build_target }}
             - name: Upload Release Asset
               uses: actions/upload-release-asset@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ needs.changelog.outputs.upload_url }}
-                  asset_path: target/${{ matrix.target.name }}/release/rustfoil.exe
+                  asset_path: target/${{ matrix.target.build_target }}/release/rustfoil.exe
                   asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
                   asset_content_type: application/x-msdownload
