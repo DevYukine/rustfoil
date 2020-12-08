@@ -86,7 +86,7 @@ jobs:
               with:
                   upload_url: ${{ needs.changelog.outputs.upload_url }}
                   asset_path: target/${{ matrix.target.build_target }}/release/rustfoil
-                  asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
+                  asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.lib }}_${{ matrix.target.arch }}
                   asset_content_type: application/x-elf
 
     build_windows:
