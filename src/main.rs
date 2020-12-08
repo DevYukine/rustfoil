@@ -263,6 +263,8 @@ impl RustfoilService {
             Some(_) => EncryptionFlag::Encrypt,
         };
 
+        fs::create_dir_all(self.input.output_path.as_path())?;
+
         fs::write(
             &self.input.output_path,
             convert_to_tinfoil_format(
