@@ -1,4 +1,13 @@
-# 0.2.0 (2020-12-07)
+# [0.3.0](https://github.com/DevYukine/rustfoil/compare/v0.2.0...v0.3.0) (2020-12-08)
+
+
+### Features
+
+* **gdrive:** support google drive shortcuts ([5e8c025](https://github.com/DevYukine/rustfoil/commit/5e8c02557abe9a0a0fd22ac60f837176adc3781b))
+
+
+
+# [0.2.0](https://github.com/DevYukine/rustfoil/compare/28b5b9a9f89b475c6f52535d604cfc4b7653e654...v0.2.0) (2020-12-07)
 
 
 ### Bug Fixes
