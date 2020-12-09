@@ -180,6 +180,12 @@ impl RustfoilService {
             return Err(Error::new(RustfoilError::CredentialsFileMissing));
         }
 
+        if let Some(pubkey) = &self.input.public_key {
+            if !pubkey.exists() {
+                return Err(Error::new(RustfoilError::PubkeyFileMissing));
+            }
+        }
+
         Ok(())
     }
 
