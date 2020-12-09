@@ -177,7 +177,7 @@ impl RustfoilService {
 
     pub fn validate_input(&self) -> result::Result<()> {
         if !&self.input.credentials.exists() {
-            return Err(Error::new(RustfoilError::CredentialsMissing));
+            return Err(Error::new(RustfoilError::CredentialsFileMissing));
         }
 
         Ok(())

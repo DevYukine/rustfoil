@@ -2,6 +2,6 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum RustfoilError {
-    #[error("Credentials file is missing")]
-    CredentialsMissing,
+    #[error("Credentials file does not exist!")]
+    CredentialsFileMissing,
 }
