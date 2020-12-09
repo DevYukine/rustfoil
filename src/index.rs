@@ -22,6 +22,29 @@ pub struct Index {
     #[serde(rename = "themeWhiteList")]
     pub theme_whitelist: Option<Vec<String>>,
     pub theme_error: Option<String>,
+    pub locations: Option<Vec<Location>>,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum Location {
+    String(String),
+    Object(LocationObject),
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum LocationAction {
+    Disable,
+    Enable,
+    Add,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct LocationObject {
+    pub url: String,
+    pub title: String,
+    pub action: LocationAction,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -46,6 +69,7 @@ impl Index {
             theme_blacklist: None,
             theme_whitelist: None,
             theme_error: None,
+            locations: None,
         }
     }
 }

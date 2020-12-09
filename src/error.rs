@@ -7,4 +7,7 @@ pub enum RustfoilError {
 
     #[error("Public key file does not exist!")]
     PubkeyFileMissing,
+
+    #[error("Location file does not exist!")]
+    LocationFileMissing,
 }

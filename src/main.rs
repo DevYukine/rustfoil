@@ -2,6 +2,7 @@
 extern crate structopt;
 
 use crate::gdrive::{FileInfo, FolderInfo, ScanResult};
+use crate::index::Location;
 use crate::logging::LogLevel::{Debug, Info, Trace};
 use crate::token::{TinfoilToken, TokenFile};
 use anyhow::Error;
@@ -141,6 +142,10 @@ pub struct Input {
     #[structopt(long, parse(from_os_str), default_value = "COPY_TO_SD/switch/tinfoil")]
     tinfoil_auth_path: PathBuf,
 
+    /// Path to location.json file
+    #[structopt(long)]
+    location_path: Option<PathBuf>,
+
     /// Verbose mode (-v, -vv, -vvv, etc.)
     #[structopt(short, long, parse(from_occurrences))]
     verbose: u8,
@@ -183,6 +188,12 @@ impl RustfoilService {
         if let Some(pubkey) = &self.input.public_key {
             if !pubkey.exists() {
                 return Err(Error::new(RustfoilError::PubkeyFileMissing));
+            }
+        }
+
+        if let Some(location) = &self.input.location_path {
+            if !location.exists() {
+                return Err(Error::new(RustfoilError::LocationFileMissing));
             }
         }
 
@@ -254,6 +265,14 @@ impl RustfoilService {
             index.theme_error = Some(error.to_string());
             self.logger
                 .log_debug("Added theme error message to index")?;
+        }
+
+        if let Some(location_path) = &self.input.location_path {
+            let content = fs::read_to_string(location_path.as_path())?;
+            let parsed: Vec<Location> = serde_json::from_str(content.as_str())?;
+            index.locations = Some(parsed);
+
+            self.logger.log_debug("Added locations to index")?;
         }
 
         self.logger.log_info("Generated index successfully")?;
