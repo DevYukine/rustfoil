@@ -288,7 +288,7 @@ impl RustfoilService {
             Some(_) => EncryptionFlag::Encrypt,
         };
 
-        fs::create_dir_all(self.input.output_path.as_path())?;
+        fs::create_dir_all(self.input.output_path.as_path().parent().unwrap())?;
 
         fs::write(
             &self.input.output_path,
