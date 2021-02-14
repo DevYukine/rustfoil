@@ -1,7 +1,7 @@
 [package]
 name = "rustfoil"
 description = "Script that will allow you to generate an index file with Google Drive file links for use with Tinfoil"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["DevYukine <devyukine@gmx.de>"]
 edition = "2018"
 

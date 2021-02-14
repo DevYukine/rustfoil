@@ -1,3 +1,12 @@
+## [0.4.1](https://github.com/DevYukine/rustfoil/compare/v0.4.0...v0.4.1) (2021-02-14)
+
+
+### Bug Fixes
+
+* **index:** encode name like the whatwg spec requires ([a1d428e](https://github.com/DevYukine/rustfoil/commit/a1d428e5f895a8c06cac497a85427a24dbfa7215))
+
+
+
 # [0.4.0](https://github.com/DevYukine/rustfoil/compare/v0.3.0...v0.4.0) (2020-12-12)
 
 
