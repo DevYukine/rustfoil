@@ -1,3 +1,12 @@
+## [0.4.2](https://github.com/DevYukine/rustfoil/compare/v0.4.1...v0.4.2) (2021-02-14)
+
+
+### Bug Fixes
+
+* **index:** encode brackets ([2631cd2](https://github.com/DevYukine/rustfoil/commit/2631cd28bd7c58f4f763ba1cf026b988cfea3de2))
+
+
+
 ## [0.4.1](https://github.com/DevYukine/rustfoil/compare/v0.4.0...v0.4.1) (2021-02-14)
 
 
