@@ -1,7 +1,10 @@
 use crate::gdrive::FileInfo;
-use percent_encoding::{utf8_percent_encode, NON_ALPHANUMERIC};
+use percent_encoding::{utf8_percent_encode, AsciiSet, CONTROLS};
 use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
+
+/// https://url.spec.whatwg.org/#fragment-percent-encode-set
+const FRAGMENT: &AsciiSet = &CONTROLS.add(b' ').add(b'"').add(b'<').add(b'>').add(b'`');
 
 #[skip_serializing_none]
 #[derive(Serialize, Deserialize)]
@@ -92,7 +95,7 @@ pub struct ParsedFileInfo {
 impl ParsedFileInfo {
     pub fn new(info: FileInfo) -> ParsedFileInfo {
         ParsedFileInfo {
-            name_encoded: utf8_percent_encode(info.name.as_str(), NON_ALPHANUMERIC).to_string(),
+            name_encoded: utf8_percent_encode(info.name.as_str(), FRAGMENT).to_string(),
             id: info.id,
             size: info.size,
             name: info.name,
