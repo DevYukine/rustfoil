@@ -46,7 +46,7 @@ jobs:
                   target: ${{ matrix.target.build_target }}
                   override: true
             - name: Install Build-Tools
-              run: sudo apt-get install build-essential gcc-multilib libc6-armhf-cross libc6-dev-armhf-cross gcc-arm-linux-gnueabihf
+              run: sudo apt install -f build-essential gcc-multilib libc6-armhf-cross libc6-dev-armhf-cross gcc-arm-linux-gnueabihf
             - name: Build
               uses: actions-rs/cargo@v1
               env:
