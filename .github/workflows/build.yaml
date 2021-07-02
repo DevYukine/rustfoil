@@ -25,6 +25,9 @@ jobs:
                     - build_target: x86_64-unknown-linux-musl
                       arch: x64
                       lib: musl
+                    - build_target: armv7-unknown-linux-gnueabihf
+                      arch: armv7
+                      lib: gnu
         steps:
             - name: Checkout Source code
               uses: actions/checkout@v2
