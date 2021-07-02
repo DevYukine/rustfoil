@@ -33,7 +33,7 @@ impl EncryptionFlag {
 
         let iv = Default::default();
 
-        let ecb = Ecb::<Aes128, ZeroPadding>::new_var(random_aes_key.as_ref(), iv)?;
+        let ecb = Ecb::<Aes128, ZeroPadding>::new_from_slices(random_aes_key.as_ref(), iv)?;
 
         let encrypted_data = ecb.encrypt_vec(data.as_slice());
 
