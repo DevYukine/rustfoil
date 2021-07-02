@@ -172,12 +172,17 @@ impl RustfoilService {
         }
     }
 
-    pub fn init(&mut self) {
-        self.gdrive = Some(GDriveService::new(
-            self.input.credentials.as_path(),
-            self.input.token.as_path(),
-            self.input.headless,
-        ));
+    pub async fn init(&mut self) -> std::io::Result<()> {
+        self.gdrive = Some(
+            GDriveService::new(
+                self.input.credentials.as_path(),
+                self.input.token.as_path(),
+                self.input.headless,
+            )
+            .await?,
+        );
+
+        Ok(())
     }
 
     pub fn validate_input(&self) -> result::Result<()> {
@@ -327,13 +332,19 @@ impl RustfoilService {
         Ok(())
     }
 
-    pub fn share_file(&self, file_id: &String, is_shared: &bool) {
+    pub async fn share_file(&self, file_id: &String, is_shared: &bool) -> result::Result<()> {
         if !is_shared {
-            self.gdrive.as_ref().unwrap().share_file(file_id.as_str());
+            self.gdrive
+                .as_ref()
+                .unwrap()
+                .share_file(file_id.as_str())
+                .await?;
         }
+
+        Ok(())
     }
 
-    pub fn share_files(&self, files: Vec<ParsedFileInfo>) -> result::Result<()> {
+    pub async fn share_files(&self, files: Vec<ParsedFileInfo>) -> result::Result<()> {
         let pb = ProgressBar::new(files.len() as u64);
 
         pb.set_style(
@@ -345,7 +356,7 @@ impl RustfoilService {
         pb.set_message("Sharing");
 
         for file in files {
-            self.share_file(&file.id, &file.shared);
+            self.share_file(&file.id, &file.shared).await?;
             pb.inc(1);
         }
 
@@ -354,7 +365,7 @@ impl RustfoilService {
         Ok(())
     }
 
-    pub fn share_folder(&self, folders: Vec<FolderInfo>) -> result::Result<()> {
+    pub async fn share_folder(&self, folders: Vec<FolderInfo>) -> result::Result<()> {
         let pb = ProgressBar::new(folders.len() as u64);
 
         pb.set_style(
@@ -368,7 +379,7 @@ impl RustfoilService {
         pb.set_message("Sharing");
 
         for folder in folders {
-            self.share_file(&folder.id, &folder.shared);
+            self.share_file(&folder.id, &folder.shared).await?;
             pb.inc(1);
         }
 
@@ -377,7 +388,7 @@ impl RustfoilService {
         Ok(())
     }
 
-    pub fn upload_index(&self) -> std::io::Result<(String, bool)> {
+    pub async fn upload_index(&self) -> std::io::Result<(String, bool)> {
         let folder_id = &self.input.upload_folder_id;
         let input = self.input.output_path.as_path();
 
@@ -386,6 +397,7 @@ impl RustfoilService {
             .as_ref()
             .unwrap()
             .upload_file(input, &self.input.upload_folder_id)
+            .await
             .unwrap();
 
         self.logger.log_info(
@@ -401,20 +413,22 @@ impl RustfoilService {
         Ok(res)
     }
 
-    pub fn share_index(&self, file_id: String, is_shared: bool) -> std::io::Result<()> {
-        self.share_file(&file_id, &is_shared);
+    pub async fn share_index(&self, file_id: String, is_shared: bool) -> result::Result<()> {
+        self.share_file(&file_id, &is_shared).await?;
         self.logger.log_info(
             format!(
                 "Shared Index File, accessible at https://drive.google.com/uc?id={}",
                 file_id
             )
             .as_str(),
-        )
+        )?;
+
+        Ok(())
     }
 
-    pub fn scan_folder(&mut self) -> ScanResult {
+    pub async fn scan_folder(&mut self) -> result::Result<ScanResult> {
         // Trigger Authentication if needed
-        self.gdrive.as_ref().unwrap().trigger_auth();
+        self.gdrive.as_ref().unwrap().trigger_auth().await?;
 
         let pb = ProgressBar::new(!0);
         pb.enable_steady_tick(130);
@@ -427,30 +441,31 @@ impl RustfoilService {
         );
         pb.set_message("Scanning...");
 
-        let scan = self
-            .input
-            .folder_ids
-            .clone()
-            .into_iter()
-            .map(|id| -> ScanResult {
+        let mut folders = vec![];
+
+        for id in self.input.folder_ids.clone() {
+            folders.push(
                 self.gdrive
                     .as_ref()
                     .unwrap()
                     .get_all_files_in_folder(id.to_owned().as_str(), !self.input.no_recursion)
-                    .unwrap()
-            })
-            .fold(
-                ScanResult::new(Vec::new(), Vec::new()),
-                |mut old, mut new| {
-                    old.files.append(&mut new.files);
-                    old.folders.append(&mut new.folders);
-                    old
-                },
-            );
+                    .await
+                    .unwrap(),
+            )
+        }
+
+        let scan = folders.into_iter().fold(
+            ScanResult::new(Vec::new(), Vec::new()),
+            |mut old, mut new| {
+                old.files.append(&mut new.files);
+                old.folders.append(&mut new.folders);
+                old
+            },
+        );
 
         pb.finish_with_message(format!("Scanned {} file(s)", scan.files.len()).as_str());
 
-        scan
+        Ok(scan)
     }
 
     pub fn parse_files(&self, files: Vec<FileInfo>) -> result::Result<Vec<ParsedFileInfo>> {
@@ -533,15 +548,15 @@ impl RustfoilService {
             .log_info(format!("Execution took {}", self.timer.elapsed().hhmmss()).as_str())
     }
 }
-
-pub fn main() -> result::Result<()> {
+#[async_std::main]
+pub async fn main() -> result::Result<()> {
     let mut service = RustfoilService::new(Input::from_args());
 
     service.validate_input()?;
 
-    service.init();
+    service.init().await?;
 
-    let scan_result = service.scan_folder();
+    let scan_result = service.scan_folder().await?;
 
     let files = service.parse_files(scan_result.files)?;
 
@@ -553,18 +568,18 @@ pub fn main() -> result::Result<()> {
         service
             .logger
             .log_warning("Consider switching to share-folders if you want faster sharing")?;
-        service.share_files(files)?;
+        service.share_files(files).await?;
     }
 
     if service.input.share_folders {
-        service.share_folder(scan_result.folders)?;
+        service.share_folder(scan_result.folders).await?;
     }
 
     if service.input.upload_my_drive || service.input.upload_folder_id.is_some() {
-        let (id, shared) = service.upload_index()?;
+        let (id, shared) = service.upload_index().await?;
 
         if service.input.share_index {
-            service.share_index(id, shared)?;
+            service.share_index(id, shared).await?;
         }
     };
 
