@@ -548,7 +548,7 @@ impl RustfoilService {
             .log_info(format!("Execution took {}", self.timer.elapsed().hhmmss()).as_str())
     }
 }
-#[async_std::main]
+#[tokio::main]
 pub async fn main() -> result::Result<()> {
     let mut service = RustfoilService::new(Input::from_args());
 

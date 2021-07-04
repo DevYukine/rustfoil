@@ -80,7 +80,13 @@ impl GDriveService {
     pub async fn trigger_auth(
         &self,
     ) -> google_drive3::Result<(hyper::Response<hyper::body::Body>, About)> {
-        self.drive_hub.about().get().add_scope(Full).doit().await
+        self.drive_hub
+            .about()
+            .get()
+            .add_scope(Full)
+            .param("fields", "*")
+            .doit()
+            .await
     }
 
     pub async fn get_file(

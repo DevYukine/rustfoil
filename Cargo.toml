@@ -32,4 +32,4 @@ sha2 = "^0.9"
 serde_with = "^1.9"
 hhmmss = "0.1"
 async-recursion = "^0.3"
-async-std = { version = "^1.9", features = ["attributes"] }
+tokio = { version = "^1.8", features = ["full"] }
