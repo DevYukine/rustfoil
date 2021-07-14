@@ -16,9 +16,9 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 
 ## Usage
 
-**NOTE:** the first time `rustfoil.exe` is ran, a URL will be displayed. Copy and paste that URL into your web browser and follow the instructions on screen to continue.
+**NOTE:** the first time `rustfoil.exe` is ran, a URL will be displayed. Copy and paste that URL into your web browser and follow the instructions on screen to continue. This process generates a `token.json` file that allows rustfoil to access your drive.
 
-- To use **rustfoil** to generate an `index.tfl` file corresponding to your Google Drive folder, run the following command:
+- To use rustfoil to generate an `index.tfl` file corresponding to your Google Drive folder, run the following command:
 
 ```
 rustfoil.exe GOOGLE_DRIVE_FOLDER_ID
