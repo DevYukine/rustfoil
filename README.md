@@ -16,7 +16,7 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 
 ## Usage
 
-**NOTE:** the first time `rustfoil.exe` is run, a URL will be displayed. Copy and paste that URL into your web browser and follow the instructions on screen to continue.
+**NOTE:** the first time `rustfoil.exe` is ran, a URL will be displayed. Copy and paste that URL into your web browser and follow the instructions on screen to continue.
 
 - To use **rustfoil** to generate an `index.tfl` file corresponding to your Google Drive folder, run the following command:
 
