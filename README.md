@@ -24,6 +24,8 @@ rustfoil.exe GOOGLE_DRIVE_FOLDER_ID
 
 This will generate an `index.tfl` file in the same directory that `rustfoil.exe` is located.
 
+**NOTE:** the first time `rustfoil.exe` is run, a URL will be displayed. Simply follow the instructions on screen to continue.
+
 - To specify a location in which your `credentials.json` file is located, add the `--credentials` flag as shown:
 
 ```
