@@ -14,6 +14,24 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 - credentials.json (you can modify location & name with `--credentials` flag) It can be obtained from [here](https://developers.google.com/drive/api/v3/quickstart/python) by clicking the Enable Drive API button in there while being signed in with the user account you want to generate credentials for or from Google's Developer Console.
 - Google Drive Folder IDs to scan and index
 
+## Usage
+
+**NOTE:** the first time `rustfoil.exe` is ran, a URL will be displayed. Copy and paste that URL into your web browser and follow the instructions on screen to continue. This process generates a `token.json` file that allows rustfoil to access your drive.
+
+- To use rustfoil to generate an `index.tfl` file corresponding to your Google Drive folder, run the following command:
+
+```
+rustfoil.exe GOOGLE_DRIVE_FOLDER_ID
+```
+
+This will generate an `index.tfl` file in the same directory that `rustfoil.exe` is located.
+
+- To specify a location in which your `credentials.json` file is located, add the `--credentials` flag as shown:
+
+```
+rustfoil.exe GOOGLE_DRIVE_FOLDER_ID --credentials "PATH/TO/CREDENTIALS/credentials.json"
+```
+
 ## (Planned) Features
 
 ### Index
