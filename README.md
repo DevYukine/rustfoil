@@ -17,9 +17,11 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 ## Usage
 
 - To use **rustfoil** to generate an `index.tfl` file corresponding to your Google Drive folder, run the following command:
+
 `rustfoil.exe GOOGLE_DRIVE_FOLDER_ID`
 
-- To specify a location other than the root directory in which your `credentials.json` file is located, add the `--credentials` flag as shown:
+- To specify a location in which your `credentials.json` file is located, add the `--credentials` flag as shown:
+
 `rustfoil.exe GOOGLE_DRIVE_FOLDER_ID --credentials "PATH/TO/CREDENTIALS/credentials.json"`
 
 ## (Planned) Features
