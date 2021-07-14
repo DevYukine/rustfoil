@@ -22,6 +22,8 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 rustfoil.exe GOOGLE_DRIVE_FOLDER_ID
 ```
 
+This will generate an `index.tfl` file in the same directory that `rustfoil.exe` is located.
+
 - To specify a location in which your `credentials.json` file is located, add the `--credentials` flag as shown:
 
 ```
