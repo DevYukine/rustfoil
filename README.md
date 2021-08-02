@@ -34,7 +34,7 @@ rustfoil.exe GOOGLE_DRIVE_FOLDER_ID --credentials "PATH/TO/CREDENTIALS/credentia
 
 - Other flags and options:
 
-![Other flags and options of Rustfoil](https://github.com/JiNama/rustfoil/Options.png)
+![Other flags and options of Rustfoil](https://raw.githubusercontent.com/JiNama/rustfoil/master/Options.png)
 
 ## (Planned) Features
 
