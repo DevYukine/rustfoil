@@ -30,7 +30,6 @@ This will generate an `index.tfl` file in the same directory that `rustfoil.exe`
 
 Flag | Description
 ------------ | -------------
-FLAGS
 `--add-non-nsw-files` | Adds files without valid NSW ROM extension(NSP/NSZ/XCI/XCZ) to index
 `--add-nsw-files-without-title-id` | Adds files without valid Title ID
 `-h`, `--help` | Prints help information
@@ -43,7 +42,6 @@ FLAGS
 `--upload-my-drive` | If the index file should be uploaded to My Drive
 `-V`, `--version` | Prints version information
 `-v`, `--verbose` | Verbose mode (`-v`, `-vv`, `-vvv`, etc.)
-OPTIONS
 `--compression <compression>` | Which compression should be used for the index file [default: zstd]  [possible values: Off, ZSTD, Zlib]
 `--credentials <credentials>` | Path to Google Application Credentials [default: credentials.json]
 `--google-api-key <google-api-key>` | Adds a google API key to be used with all gdrive:/ requests
