@@ -29,7 +29,7 @@ This will generate an `index.tfl` file in the same directory that `rustfoil.exe`
 - Other flags and options:
 
 Flag | Description
---------------------------------- | ------
+---: | :---:
 `--add-non-nsw-files` | Adds files without valid NSW ROM extension(NSP/NSZ/XCI/XCZ) to index
 `--add-nsw-files-without-title-id` | Adds files without valid Title ID
 `-h`, `--help` | Prints help information
