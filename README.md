@@ -32,6 +32,10 @@ This will generate an `index.tfl` file in the same directory that `rustfoil.exe`
 rustfoil.exe GOOGLE_DRIVE_FOLDER_ID --credentials "PATH/TO/CREDENTIALS/credentials.json"
 ```
 
+- Other flags and options:
+
+![Other flags and options of Rustfoil](https://github.com/JiNama/rustfoil/Options.png)
+
 ## (Planned) Features
 
 ### Index
