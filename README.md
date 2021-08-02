@@ -34,6 +34,12 @@ rustfoil.exe GOOGLE_DRIVE_FOLDER_ID --credentials "PATH/TO/CREDENTIALS/credentia
 
 - Other flags and options:
 
+Flag | Description
+------------ | -------------
+--add-non-nsw-files | Adds files without valid NSW ROM extension(NSP/NSZ/XCI/XCZ) to index
+ --add-nsw-files-without-title-id | Adds files without valid Title ID
+
+
 ![Other flags and options of Rustfoil](https://raw.githubusercontent.com/JiNama/rustfoil/master/Options.png)
 
 ## (Planned) Features
