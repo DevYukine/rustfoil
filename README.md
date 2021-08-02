@@ -26,21 +26,41 @@ rustfoil.exe GOOGLE_DRIVE_FOLDER_ID
 
 This will generate an `index.tfl` file in the same directory that `rustfoil.exe` is located.
 
-- To specify a location in which your `credentials.json` file is located, add the `--credentials` flag as shown:
-
-```
-rustfoil.exe GOOGLE_DRIVE_FOLDER_ID --credentials "PATH/TO/CREDENTIALS/credentials.json"
-```
-
 - Other flags and options:
 
 Flag | Description
 ------------ | -------------
---add-non-nsw-files | Adds files without valid NSW ROM extension(NSP/NSZ/XCI/XCZ) to index
- --add-nsw-files-without-title-id | Adds files without valid Title ID
-
-
-![Other flags and options of Rustfoil](https://raw.githubusercontent.com/JiNama/rustfoil/master/Options.png)
+FLAGS
+`--add-non-nsw-files` | Adds files without valid NSW ROM extension(NSP/NSZ/XCI/XCZ) to index
+`--add-nsw-files-without-title-id` | Adds files without valid Title ID
+`-h`, `--help` | Prints help information
+`--headless` | If OAuth should be done headless
+`--no-recursion` | Scans for files only in top directory for each Folder ID entered
+`--share-files` | Share all files inside the index file (not recommended, use OAuth)
+`--share-folders` | Share all folders inside the provided folders (not recommended, use OAuth)
+`--share-index` | Shares the index file that is uploaded to Google Drive
+`--tinfoil-auth` | If Tinfoil authentication files should be generated
+`--upload-my-drive` | If the index file should be uploaded to My Drive
+`-V`, `--version` | Prints version information
+`-v`, `--verbose` | Verbose mode (`-v`, `-vv`, `-vvv`, etc.)
+OPTIONS
+`--compression <compression>` | Which compression should be used for the index file [default: zstd]  [possible values: Off, ZSTD, Zlib]
+`--credentials <credentials>` | Path to Google Application Credentials [default: credentials.json]
+`--google-api-key <google-api-key>` | Adds a google API key to be used with all gdrive:/ requests
+`--headers <headers>...` | Adds custom HTTP headers Tinfoil should send with its requests
+`--location-path <location-path>` | Path to location.json file
+`--min-version <min-version>` | Adds a minimum Tinfoil version to load the index
+`--one-fichier-keys <one-fichier-keys>...` | Adds 1Fincher API keys to be used with all 1f:/ requests, If multiple keys are provided, Tinfoil keeps trying them until it finds one that works
+`-o <output-path>` or `--output-path <output-path>` | Path to output index file [default: index.tfl]
+`--public-key <public-key>` | Path to RSA Public Key to encrypt AES-ECB-256 key with
+`--referrer <referrer>` | Adds a referrer to index file to prevent others from hotlinking
+`--success <success>` | Adds a success message to index file to show if index is successfully read by Tinfoil
+`--theme-blacklist <theme-blacklist>...` | Adds a list of themes to blacklist based on their hash
+`--theme-error <theme-error>` | Adds a custom theme error message to the index
+`--theme-whitelist <theme-whitelist>...` | Adds a list of themes to whitelist based on their hash
+`--tinfoil-auth-path <tinfoil-auth-path>` | Path to Tinfoil authentication files [default: COPY_TO_SD/switch/tinfoil]
+`--token <token>` | Path to Google OAuth2.0 User Token [default: token.json]
+`--upload-folder-id <upload-folder-id>` | If the index file should be uploaded to specific folder
 
 ## (Planned) Features
 
