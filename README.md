@@ -60,6 +60,8 @@ Flag | Description
 `--token <token>` | Path to Google OAuth2.0 User Token [default: token.json]
 `--upload-folder-id <upload-folder-id>` | If the index file should be uploaded to specific folder
 
+- For a step-by-step guide, check out [ii0606226](https://github.com/ii0606226)'s step-by-step guide [here](https://ii0606226.github.io/gdrive-compendium/rustfoil-steps)!
+
 ## (Planned) Features
 
 ### Index
