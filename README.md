@@ -26,7 +26,9 @@ rustfoil.exe GOOGLE_DRIVE_FOLDER_ID
 
 This will generate an `index.tfl` file in the same directory that `rustfoil.exe` is located.
 
-- Other flags and options:
+- For a more comprehensive guide, check out [ii0606226](https://github.com/ii0606226)'s step-by-step guide [here](https://ii0606226.github.io/gdrive-compendium/rustfoil-steps)!
+
+## Flags and Options
 
 Flag | Description
 :--- | :---
@@ -59,8 +61,6 @@ Flag | Description
 `--tinfoil-auth-path <tinfoil-auth-path>` | Path to Tinfoil authentication files [default: COPY_TO_SD/switch/tinfoil]
 `--token <token>` | Path to Google OAuth2.0 User Token [default: token.json]
 `--upload-folder-id <upload-folder-id>` | If the index file should be uploaded to specific folder
-
-- For a step-by-step guide, check out [ii0606226](https://github.com/ii0606226)'s step-by-step guide [here](https://ii0606226.github.io/gdrive-compendium/rustfoil-steps)!
 
 ## (Planned) Features
 
