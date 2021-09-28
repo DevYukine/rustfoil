@@ -35,10 +35,10 @@ Flag | Description
 `--add-non-nsw-files` | Adds files without valid NSW ROM extension(NSP/NSZ/XCI/XCZ) to index
 `--add-nsw-files-without-title-id` | Adds files without valid Title ID
 `-h`, `--help` | Prints help information
-`--headless` | If OAuth should be done headless
+`--headless` | If OAuth should be done headless (this will give you a key to paste into the rustfoil.exe window rather than automatically generating your token; use this if you're having trouble configuring OAuth otherwise)
 `--no-recursion` | Scans for files only in top directory for each Folder ID entered
-`--share-files` | Share all files inside the index file (not recommended, use OAuth)
-`--share-folders` | Share all folders inside the provided folders (not recommended, use OAuth)
+`--share-files` | Share all files inside the index file
+`--share-folders` | Share all folders inside the provided folders
 `--share-index` | Shares the index file that is uploaded to Google Drive
 `--tinfoil-auth` | If Tinfoil authentication files should be generated
 `--upload-my-drive` | If the index file should be uploaded to My Drive
@@ -61,6 +61,8 @@ Flag | Description
 `--tinfoil-auth-path <tinfoil-auth-path>` | Path to Tinfoil authentication files [default: COPY_TO_SD/switch/tinfoil]
 `--token <token>` | Path to Google OAuth2.0 User Token [default: token.json]
 `--upload-folder-id <upload-folder-id>` | If the index file should be uploaded to specific folder
+
+**NOTE:** it is not recommended that you use the `--share-files` or `--share-folders` flags as this will essentially make your files public, which could lead to them being flagged, and therefore, unusable. It is instead recommened that you use OAuth only, as that will ensure that you're the only one with access to those files and folders.
 
 ## (Planned) Features
 
