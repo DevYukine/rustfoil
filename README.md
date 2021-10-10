@@ -35,7 +35,7 @@ Flag | Description
 `--add-non-nsw-files` | Adds files without valid NSW ROM extension(NSP/NSZ/XCI/XCZ) to index
 `--add-nsw-files-without-title-id` | Adds files without valid Title ID
 `-h`, `--help` | Prints help information
-`--headless` | If OAuth should be done headless (this will give you a key to paste into the rustfoil.exe window rather than automatically generating your token; use this if you're having trouble configuring OAuth otherwise)
+`--headless` | If OAuth should be done headless (this is needed for remote sessions e.g. running rustfoil on a remote server which can't run a webbrowser on it so instead of opening a new tab for you automatically it gives you a link which you need to copy and paste in your local browser then authorize through and then copy back the token you get in the command line)
 `--no-recursion` | Scans for files only in top directory for each Folder ID entered
 `--share-files` | Share all files inside the index file
 `--share-folders` | Share all folders inside the provided folders
