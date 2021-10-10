@@ -62,7 +62,7 @@ Flag | Description
 `--token <token>` | Path to Google OAuth2.0 User Token [default: token.json]
 `--upload-folder-id <upload-folder-id>` | If the index file should be uploaded to specific folder
 
-**NOTE:** it is not recommended that you use the `--share-files` or `--share-folders` flags as this will essentially make your files public, which could lead to them being flagged, and therefore, unusable. It is instead recommened that you use OAuth only, as that will ensure that you're the only one with access to those files and folders.
+**NOTE:** It is recommend to use OAuth over using the `--share-files` or `--share-folders` flags as this will make your files public accessible and in most usecases this isn't needed or wanted. OAuth will instead make your files accessible via the generated index for tinfoil only which leads to less issues overall.
 
 ## (Planned) Features
 
