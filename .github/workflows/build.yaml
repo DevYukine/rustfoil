@@ -47,7 +47,7 @@ jobs:
             - name: Build
               run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Action Artifact
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.lib }}_${{ matrix.target.arch }}
                   path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
@@ -82,7 +82,7 @@ jobs:
             - name: Build
               run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Action Artifact
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
                   path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli.exe
@@ -117,7 +117,7 @@ jobs:
         - name: Build
           run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
         - name: Upload Action Artifact
-          uses: actions/upload-artifact@v2
+          uses: actions/upload-artifact@v3
           with:
             name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
             path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
