@@ -1,6 +1,6 @@
 [package]
 name = "rustfoil-cli"
-version = "1.0.0"
+version = "0.4.2"
 description = "Rustfoil is a CLI which can generate an Index file to use with Tinfoil. It supports both Gdrive and local files hosted via a Http Server."
 authors = ["DevYukine <devyukine@gmx.de>"]
 edition = "2021"
