@@ -53,6 +53,8 @@ jobs:
         steps:
             - name: Checkout Source code
               uses: actions/checkout@v4
+              with:
+                ref: "stable"
             - name: Cache Rust dependencies
               uses: actions/cache@v3
               with:
@@ -137,6 +139,8 @@ jobs:
       steps:
         - name: Checkout Source code
           uses: actions/checkout@v4
+          with:
+            ref: "stable"
         - name: Cache Rust dependencies
           uses: actions/cache@v3
           with:
