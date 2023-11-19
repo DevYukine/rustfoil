@@ -43,7 +43,7 @@ jobs:
                   toolchain: stable
                   target: ${{ matrix.target.build_target }}
             - name: Install Build-Tools
-              run: sudo apt-get install build-essential gcc-multilib musl-gcc
+              run: sudo apt-get install build-essential gcc-multilib zstd
             - name: Build
               run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Action Artifact
