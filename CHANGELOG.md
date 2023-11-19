@@ -1,3 +1,12 @@
+## [0.5.1](https://github.com/DevYukine/rustfoil/compare/v0.5.0...v0.5.1) (2023-11-19)
+
+
+### Bug Fixes
+
+* **ci:** correct actions/checkout version in release action ([8f6d570](https://github.com/DevYukine/rustfoil/commit/8f6d570d4047ae57036244596c77b684f177a3ac))
+
+
+
 # [0.5.0](https://github.com/DevYukine/rustfoil/compare/v0.4.2...v0.5.0) (2023-11-19)
 
 
@@ -45,15 +54,6 @@
 ### Features
 
 * implement tinfoil index location ([488657a](https://github.com/DevYukine/rustfoil/commit/488657acf60d87fcecabeb38fa1892f30a1f5c3e))
-
-
-
-# [0.3.0](https://github.com/DevYukine/rustfoil/compare/v0.2.0...v0.3.0) (2020-12-08)
-
-
-### Features
-
-* **gdrive:** support google drive shortcuts ([5e8c025](https://github.com/DevYukine/rustfoil/commit/5e8c02557abe9a0a0fd22ac60f837176adc3781b))
 
 
 
