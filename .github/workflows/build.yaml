@@ -108,7 +108,7 @@ jobs:
               ~/.cargo/git
               rustfoil-cli/target
               rustfoil-lib/target
-            key: ${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
         - name: Install Rust Toolchain
           uses: dtolnay/rust-toolchain@master
           with:
