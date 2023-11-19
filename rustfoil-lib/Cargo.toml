@@ -1,6 +1,8 @@
 [package]
 name = "rustfoil-lib"
 version = "1.0.0"
+description = "A library for creating Index files for Tinfoil from Google Drive or local files."
+authors = ["DevYukine <devyukine@gmx.de>"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
