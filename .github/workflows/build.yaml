@@ -92,7 +92,11 @@ jobs:
       runs-on: macos-latest
       strategy:
         matrix:
-          target: [x86_64-apple-darwin, aarch64-apple-darwin]
+          target:
+            - build_target: x86_64-apple-darwin
+              arch: x64
+            - build_target: aarch64-apple-darwin
+              arch: aarch64
       steps:
         - name: Checkout Source code
           uses: actions/checkout@v4
@@ -115,5 +119,5 @@ jobs:
         - name: Upload Action Artifact
           uses: actions/upload-artifact@v2
           with:
-            name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
+            name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
             path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil.exe
