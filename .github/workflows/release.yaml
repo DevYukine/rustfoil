@@ -96,7 +96,7 @@ jobs:
                       arch: x64
         steps:
             - name: Checkout Source code
-              uses: actions/checkout@4
+              uses: actions/checkout@v4
               with:
                   ref: "stable"
             - name: Cache Rust dependencies
