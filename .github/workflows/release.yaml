@@ -22,7 +22,7 @@ jobs:
               uses: TriPSs/conventional-changelog-action@v3
               with:
                   github-token: ${{ secrets.github_token }}
-                  version-file: './Cargo.toml'
+                  version-file: './rustfoil-cli/Cargo.toml'
                   version-path: "package.version"
             - name: Create Release
               id: create_release

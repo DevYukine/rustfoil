@@ -1,65 +1,29 @@
+extern crate google_drive3 as drive3;
+
+use crate::gdrive::model::{GoogleDriveFileInfo, GoogleDriveFolderInfo, GoogleDriveScanResult};
 use async_recursion::async_recursion;
+use drive3::{hyper, hyper_rustls, oauth2, DriveHub};
 use google_drive3::api::Scope::Full;
-use google_drive3::api::{About, File, Permission};
-use google_drive3::DriveHub;
-use hyper::{Body, Response};
+use google_drive3::api::{File, Permission};
+use google_drive3::hyper::client::HttpConnector;
+use google_drive3::hyper::{Body, Response};
+use hyper_rustls::HttpsConnector;
+use oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
 use std::fs;
-use std::path::Path;
-use yup_oauth2::{InstalledFlowAuthenticator, InstalledFlowReturnMethod};
+use std::path::PathBuf;
 
-pub struct GDriveService {
-    drive_hub: DriveHub,
+pub struct GoogleDriveApiService {
+    drive_hub: DriveHub<HttpsConnector<HttpConnector>>,
 }
 
-#[derive(Clone)]
-pub struct FileInfo {
-    pub id: String,
-    pub size: String,
-    pub name: String,
-    pub shared: bool,
-}
-
-pub struct FolderInfo {
-    pub id: String,
-    pub shared: bool,
-}
-
-pub struct ScanResult {
-    pub files: Vec<FileInfo>,
-    pub folders: Vec<FolderInfo>,
-}
-
-impl ScanResult {
-    pub fn new(files: Vec<FileInfo>, folders: Vec<FolderInfo>) -> ScanResult {
-        ScanResult { files, folders }
-    }
-}
-
-impl FolderInfo {
-    pub fn new(id: String, shared: bool) -> FolderInfo {
-        FolderInfo { id, shared }
-    }
-}
-
-impl FileInfo {
-    pub fn new(id: String, size: String, name: String, shared: bool) -> FileInfo {
-        FileInfo {
-            id,
-            size,
-            name,
-            shared,
-        }
-    }
-}
-
-impl GDriveService {
+impl GoogleDriveApiService {
     pub async fn new(
-        secret_path: &Path,
-        token_path: &Path,
+        secret_path: PathBuf,
+        token_path: PathBuf,
         headless: bool,
-    ) -> std::io::Result<GDriveService> {
+    ) -> anyhow::Result<GoogleDriveApiService> {
         let auth = InstalledFlowAuthenticator::builder(
-            yup_oauth2::read_application_secret(secret_path).await?,
+            oauth2::read_application_secret(secret_path).await?,
             match headless {
                 true => InstalledFlowReturnMethod::Interactive,
                 false => InstalledFlowReturnMethod::HTTPRedirect,
@@ -70,43 +34,48 @@ impl GDriveService {
         .await?;
 
         let hub = DriveHub::new(
-            hyper::Client::builder().build(hyper_rustls::HttpsConnector::with_native_roots()),
+            hyper::Client::builder().build(
+                hyper_rustls::HttpsConnectorBuilder::new()
+                    .with_native_roots()
+                    .https_or_http()
+                    .enable_http1()
+                    .build(),
+            ),
             auth,
         );
 
-        Ok(GDriveService { drive_hub: hub })
+        Ok(GoogleDriveApiService { drive_hub: hub })
     }
 
-    pub async fn trigger_auth(
-        &self,
-    ) -> google_drive3::Result<(hyper::Response<hyper::body::Body>, About)> {
+    pub async fn trigger_auth(&self) -> anyhow::Result<()> {
         self.drive_hub
             .about()
             .get()
             .add_scope(Full)
             .param("fields", "*")
             .doit()
-            .await
+            .await?;
+        Ok(())
     }
 
-    pub async fn get_file(
-        &self,
-        file_id: &str,
-    ) -> google_drive3::Result<(hyper::Response<hyper::body::Body>, File)> {
-        self.drive_hub
+    pub async fn get_file(&self, file_id: &str) -> anyhow::Result<File> {
+        let (_, file) = self
+            .drive_hub
             .files()
             .get(file_id)
             .supports_all_drives(true)
             .add_scope(Full)
+            .param("fields", "id,name,size,permissionIds")
             .doit()
-            .await
+            .await?;
+        Ok(file)
     }
 
     pub async fn ls(
         &self,
         folder_id: &str,
         search_terms: Option<&str>,
-    ) -> google_drive3::Result<Vec<File>> {
+    ) -> anyhow::Result<Vec<File>> {
         let mut files = Vec::new();
 
         let mut page_token: Option<String> = None;
@@ -134,16 +103,18 @@ impl GDriveService {
 
             let resp = match page_token {
                 None => req.add_scope(Full).doit().await?,
-                Some(_) => {
-                    req.page_token(page_token.unwrap().as_str())
+                Some(token) => {
+                    req.page_token(token.as_str())
                         .add_scope(Full)
                         .doit()
                         .await?
                 }
             };
 
-            for file in resp.1.files.unwrap() {
-                files.push(file);
+            if let Some(response_files) = resp.1.files {
+                for file in response_files {
+                    files.push(file);
+                }
             }
 
             page_token = resp.1.next_page_token;
@@ -155,7 +126,7 @@ impl GDriveService {
         Ok(files)
     }
 
-    pub async fn lsd(&self, folder_id: &str) -> google_drive3::Result<Vec<File>> {
+    pub async fn lsd(&self, folder_id: &str) -> anyhow::Result<Vec<File>> {
         self.ls(
             folder_id,
             Option::from("mimeType contains \"application/vnd.google-apps.folder\""),
@@ -163,7 +134,7 @@ impl GDriveService {
         .await
     }
 
-    pub async fn lsf(&self, folder_id: &str) -> google_drive3::Result<Vec<File>> {
+    pub async fn lsf(&self, folder_id: &str) -> anyhow::Result<Vec<File>> {
         self.ls(
             folder_id,
             Option::from("not mimeType contains \"application/vnd.google-apps.folder\""),
@@ -171,7 +142,7 @@ impl GDriveService {
         .await
     }
 
-    pub async fn lsd_my_drive(&self) -> google_drive3::Result<Vec<File>> {
+    pub async fn lsd_my_drive(&self) -> anyhow::Result<Vec<File>> {
         self.ls(
             "root",
             Option::from("mimeType contains \"application/vnd.google-apps.folder\""),
@@ -179,7 +150,7 @@ impl GDriveService {
         .await
     }
 
-    pub async fn lsf_my_drive(&self) -> google_drive3::Result<Vec<File>> {
+    pub async fn lsf_my_drive(&self) -> anyhow::Result<Vec<File>> {
         self.ls(
             "root",
             Option::from("not mimeType contains \"application/vnd.google-apps.folder\""),
@@ -187,7 +158,7 @@ impl GDriveService {
         .await
     }
 
-    pub async fn lss(&self, folder_id: &str) -> google_drive3::Result<Vec<File>> {
+    pub async fn lss(&self, folder_id: &str) -> anyhow::Result<Vec<File>> {
         self.ls(
             folder_id,
             Option::from("mimeType contains \"application/vnd.google-apps.shortcut\""),
@@ -195,12 +166,20 @@ impl GDriveService {
         .await
     }
 
-    pub async fn is_file_shared(&self, file: File) -> google_drive3::Result<bool> {
+    pub async fn is_file_shared_by_id(&self, file_id: &str) -> anyhow::Result<bool> {
+        let file = self.get_file(file_id).await?;
+        self.is_file_shared(&file).await
+    }
+
+    pub async fn is_file_shared(&self, file: &File) -> anyhow::Result<bool> {
         let mut shared = false;
 
-        let file_id = file.id.unwrap();
+        let file_id = match &file.id {
+            None => return Err(anyhow::Error::msg("File ID not found in file object")),
+            Some(id) => id,
+        };
 
-        if let Some(ids) = file.permission_ids {
+        if let Some(ids) = &file.permission_ids {
             for id in ids {
                 let mut vec: Vec<char> = id.chars().collect();
 
@@ -221,7 +200,7 @@ impl GDriveService {
                 }
 
                 if id == "anyoneWithLink" {
-                    shared = true
+                    shared = true;
                 }
             }
         }
@@ -233,14 +212,15 @@ impl GDriveService {
         &self,
         file_id: &str,
         permission_id: &str,
-    ) -> google_drive3::Result<Response<Body>> {
-        self.drive_hub
+    ) -> anyhow::Result<Response<Body>> {
+        Ok(self
+            .drive_hub
             .permissions()
             .delete(file_id, permission_id)
             .supports_all_drives(true)
             .add_scope(Full)
             .doit()
-            .await
+            .await?)
     }
 
     #[async_recursion]
@@ -248,17 +228,19 @@ impl GDriveService {
         &self,
         folder_id: &str,
         recursion: bool,
-    ) -> google_drive3::Result<ScanResult> {
+    ) -> anyhow::Result<GoogleDriveScanResult> {
         let mut files = Vec::new();
         let mut folders = Vec::new();
 
         for file in self.lsf(folder_id).await? {
             if let Some(_) = &file.size {
-                files.push(FileInfo::new(
-                    file.id.to_owned().unwrap(),
-                    file.size.to_owned().unwrap(),
-                    file.name.to_owned().unwrap(),
-                    self.is_file_shared(file).await?,
+                let is_shared = self.is_file_shared(&file).await?;
+
+                files.push(GoogleDriveFileInfo::new(
+                    file.id.unwrap(),
+                    file.size.unwrap(),
+                    file.name.unwrap(),
+                    is_shared,
                 ));
             }
         }
@@ -270,11 +252,11 @@ impl GDriveService {
                 if let Some(mime_type) = &info.target_mime_type {
                     if mime_type == "application/vnd.google-apps.folder" {
                         if let Some(id) = &info.target_id {
-                            let folder = self.get_file(id).await?.1;
+                            let folder = self.get_file(id).await?;
 
-                            folders.push(FolderInfo::new(
+                            folders.push(GoogleDriveFolderInfo::new(
                                 folder.id.to_owned().unwrap(),
-                                self.is_file_shared(folder).await?,
+                                self.is_file_shared(&folder).await?,
                             ));
 
                             for file_info in
@@ -296,37 +278,35 @@ impl GDriveService {
                 {
                     files.push(file_info);
                 }
-                folders.push(FolderInfo::new(
+                folders.push(GoogleDriveFolderInfo::new(
                     folder_id,
-                    self.is_file_shared(folder).await?,
+                    self.is_file_shared(&folder).await?,
                 ));
             }
         }
 
-        Ok(ScanResult::new(files, folders))
+        Ok(GoogleDriveScanResult::new(files, folders))
     }
 
-    pub async fn share_file(
-        &self,
-        file_id: &str,
-    ) -> google_drive3::Result<(Response<Body>, Permission)> {
+    pub async fn share_file(&self, file_id: &str) -> anyhow::Result<(Response<Body>, Permission)> {
         let mut perms = Permission::default();
         perms.role = Option::from("reader".to_string());
         perms.type_ = Option::from("anyone".to_string());
-        self.drive_hub
+        Ok(self
+            .drive_hub
             .permissions()
             .create(perms, file_id)
             .supports_all_drives(true)
             .add_scope(Full)
             .doit()
-            .await
+            .await?)
     }
 
     pub async fn upload_file(
         &self,
-        file_path: &Path,
+        file_path: PathBuf,
         dest_folder_id: &Option<String>,
-    ) -> google_drive3::Result<(String, bool)> {
+    ) -> anyhow::Result<GoogleDriveFileInfo> {
         let root_files = if let Some(folder_id) = dest_folder_id {
             self.lsf(folder_id.as_str()).await
         } else {
@@ -346,48 +326,53 @@ impl GDriveService {
         }
 
         let res = match existing_file {
-            Some(file) => {
+            Some(api_file) => {
                 let mut req = File::default();
 
-                req.name = file.name;
+                req.name = api_file.name;
+
+                let file = tokio::task::spawn_blocking(move || fs::File::open(file_path)).await??;
 
                 self.drive_hub
                     .files()
-                    .update(req, file.id.unwrap().as_str())
+                    .update(req, api_file.id.unwrap().as_str())
                     .supports_all_drives(true)
                     .add_scope(Full)
-                    .upload_resumable(
-                        fs::File::open(file_path).unwrap(),
-                        "application/octet-stream".parse().unwrap(),
-                    )
+                    .upload_resumable(file, "application/octet-stream".parse()?)
                     .await?
                     .1
             }
             None => {
-                let mut file = File::default();
+                let mut api_file = File::default();
 
-                file.name = Some(file_path_name.to_string());
+                api_file.name = Some(file_path_name.to_string());
 
                 if let Some(id) = dest_folder_id {
                     let mut vec = Vec::new();
                     vec.push(id.to_owned());
-                    file.parents = Some(vec);
+                    api_file.parents = Some(vec);
                 }
+
+                let file = tokio::task::spawn_blocking(move || fs::File::open(file_path)).await??;
 
                 self.drive_hub
                     .files()
-                    .create(file)
+                    .create(api_file)
                     .supports_all_drives(true)
                     .add_scope(Full)
-                    .upload_resumable(
-                        fs::File::open(file_path).unwrap(),
-                        "application/octet-stream".parse().unwrap(),
-                    )
+                    .upload_resumable(file, "application/octet-stream".parse()?)
                     .await?
                     .1
             }
         };
 
-        Ok((res.id.to_owned().unwrap(), self.is_file_shared(res).await?))
+        let is_shared = self.is_file_shared(&res).await?;
+
+        Ok(GoogleDriveFileInfo::new(
+            res.id.unwrap(),
+            res.size.unwrap(),
+            res.name.unwrap(),
+            is_shared,
+        ))
     }
 }

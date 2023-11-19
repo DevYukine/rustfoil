@@ -27,35 +27,30 @@ jobs:
                       lib: musl
         steps:
             - name: Checkout Source code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Cache Rust dependencies
-              uses: actions/cache@v2
+              uses: actions/cache@v3
               with:
                   path: |
                       ~/.cargo/registry
                       ~/.cargo/git
-                      target
-                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                      rustfoil-cli/target
+                      rustfoil-lib/target
+                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/**/Cargo.lock') }}
             - name: Install Rust Toolchain
-              uses: actions-rs/toolchain@v1
+              uses: dtolnay/rust-toolchain@master
               with:
                   toolchain: stable
                   target: ${{ matrix.target.build_target }}
-                  override: true
             - name: Install Build-Tools
-              run: sudo apt-get install build-essential gcc-multilib
+              run: sudo apt-get install build-essential gcc-multilib zstd musl-tools musl-dev
             - name: Build
-              uses: actions-rs/cargo@v1
-              env:
-                  TARGET_CC: clang
-              with:
-                  command: build
-                  args: --release --target=${{ matrix.target.build_target }}
+              run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Action Artifact
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.lib }}_${{ matrix.target.arch }}
-                  path: target/${{ matrix.target.build_target }}/release/rustfoil
+                  path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
 
     windows:
         name: Windows Build
@@ -69,28 +64,60 @@ jobs:
                       arch: x64
         steps:
             - name: Checkout Source code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Cache Rust dependencies
-              uses: actions/cache@v2
+              uses: actions/cache@v3
               with:
                   path: |
                       ~/.cargo/registry
                       ~/.cargo/git
-                      target
-                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                      rustfoil-cli/target
+                      rustfoil-lib/target
+                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/**/Cargo.lock') }}
             - name: Install Rust Toolchain
-              uses: actions-rs/toolchain@v1
+              uses: dtolnay/rust-toolchain@master
               with:
                   toolchain: stable
                   target: ${{ matrix.target.build_target }}
-                  override: true
             - name: Build
-              uses: actions-rs/cargo@v1
-              with:
-                  command: build
-                  args: --release --target=${{ matrix.target.build_target }}
+              run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Action Artifact
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
-                  path: target/${{ matrix.target.build_target }}/release/rustfoil.exe
+                  path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli.exe
+
+    macos:
+      name: MacOS Build
+      runs-on: macos-latest
+      strategy:
+        matrix:
+          target:
+            - build_target: x86_64-apple-darwin
+              arch: x64
+            - build_target: aarch64-apple-darwin
+              arch: aarch64
+      steps:
+        - name: Checkout Source code
+          uses: actions/checkout@v4
+        - name: Cache Rust dependencies
+          uses: actions/cache@v3
+          with:
+            path: |
+              ~/.cargo/registry
+              ~/.cargo/git
+              rustfoil-cli/target
+              rustfoil-lib/target
+            key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/**/Cargo.lock') }}
+        - name: Install Rust Toolchain
+          uses: dtolnay/rust-toolchain@master
+          with:
+            toolchain: stable
+            target: ${{ matrix.target.build_target }}
+        - name: Build
+          run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
+        - name: Upload Action Artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
+            path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli

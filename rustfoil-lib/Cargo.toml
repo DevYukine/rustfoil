@@ -1,0 +1,27 @@
+[package]
+name = "rustfoil-lib"
+version = "1.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+google-drive3 = { version = "^5" }
+serde = { version = "^1", features = ["derive"] }
+serde_json = "^1.0.108"
+serde_with = "^3.4"
+tokio = { version = "^1.34", features = ["full"] }
+anyhow = "^1.0"
+async-recursion = "^1.0"
+percent-encoding = "^2.3"
+zstd = "^0.13"
+flate2 = "^1.0"
+log = "^0.4.20"
+rand = "^0.8"
+aes = "^0.8"
+ecb = { version = "0.1.2", features = ["alloc"]}
+rsa = "^0.9"
+sha2 = "^0.10"
+regex = "^1.10"
+lazy_static = "^1.4"
+urlencoding = "^2.1"
