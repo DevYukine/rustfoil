@@ -34,12 +34,13 @@ impl HttpFile {
     ) -> anyhow::Result<HttpFile> {
         let path = local_file.path.strip_prefix(base_path)?;
 
+        let file_name = path.file_name().unwrap().to_str().unwrap();
+        let parent = path.parent().unwrap().to_str().unwrap();
+
+        let file_path = format!("{}/{}", parent, urlencoding::encode(file_name));
+
         Ok(HttpFile {
-            url: format!(
-                "{}{}",
-                base_url,
-                urlencoding::encode(path.to_str().unwrap())
-            ),
+            url: base_url.to_string() + file_path.as_str(),
             size: local_file.size as i64,
             name: local_file.name.clone(),
         })
