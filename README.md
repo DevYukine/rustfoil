@@ -1,6 +1,6 @@
 # Rustfoil
 
-This CLI allows you to easy generate an index file for use with Tinfoil.
+This CLI allows you to easy generate an index file for use with Tinfoil from either Google .
 
 This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer](https://github.com/eXhumer) & [tinfoil_gdrive_generator](https://github.com/BigBrainAFK/tinfoil_gdrive_generator/) by [BigBrainAFK](https://github.com/BigBrainAFK) 
 
@@ -9,19 +9,33 @@ This project is based on [TinGen](https://github.com/eXhumer/TinGen) by [eXhumer
 - Rust allows to bundle the complete application, no dependency installation required!
 - I wanted to get back to rust again and this was a good project to take on!
 
-## Requirements
+## Modes
+
+Rustfoil currently supports 2 modes:
+
+- Google Drive
+- Http
+
+for the Http mode it assumes you already have an Http Server running which serve the files, it does not serve as an own http server.
+
+## Requirements Google Drive
 
 - credentials.json (you can modify location & name with `--credentials` flag) It can be obtained from [here](https://developers.google.com/drive/api/v3/quickstart/python) by clicking the Enable Drive API button in there while being signed in with the user account you want to generate credentials for or from Google's Developer Console.
 - Google Drive Folder IDs to scan and index
 
-## Usage
+## Requirements Http
+
+- Http Server which serves the files
+- access to the local files to index
+
+## Usage Google Drive
 
 **NOTE:** the first time `rustfoil.exe` is ran, a URL will be displayed. Copy and paste that URL into your web browser and follow the instructions on screen to continue. This process generates a `token.json` file that allows rustfoil to access your drive.
 
 - To use rustfoil to generate an `index.tfl` file corresponding to your Google Drive folder, run the following command:
 
 ```
-rustfoil.exe GOOGLE_DRIVE_FOLDER_ID
+rustfoil.exe gdrive GOOGLE_DRIVE_FOLDER_IDs
 ```
 
 This will generate an `index.tfl` file in the same directory that `rustfoil.exe` is located.
@@ -43,11 +57,9 @@ Flag | Description
 `--tinfoil-auth` | If Tinfoil authentication files should be generated
 `--upload-my-drive` | If the index file should be uploaded to My Drive
 `-V`, `--version` | Prints version information
-`-v`, `--verbose` | Verbose mode (`-v`, `-vv`, `-vvv`, etc.)
 `--compression <compression>` | Which compression should be used for the index file [default: zstd]  [possible values: Off, ZSTD, Zlib]
 `--credentials <credentials>` | Path to Google Application Credentials [default: credentials.json]
 `--google-api-key <google-api-key>` | Adds a google API key to be used with all gdrive:/ requests
-`--headers <headers>...` | Adds custom HTTP headers Tinfoil should send with its requests
 `--location-path <location-path>` | Path to location.json file
 `--min-version <min-version>` | Adds a minimum Tinfoil version to load the index
 `--one-fichier-keys <one-fichier-keys>...` | Adds 1Fincher API keys to be used with all 1f:/ requests, If multiple keys are provided, Tinfoil keeps trying them until it finds one that works
@@ -62,7 +74,7 @@ Flag | Description
 `--token <token>` | Path to Google OAuth2.0 User Token [default: token.json]
 `--upload-folder-id <upload-folder-id>` | If the index file should be uploaded to specific folder
 
-**NOTE:** It is recommend to use OAuth over using the `--share-files` or `--share-folders` flags as this will make your files public accessible and in most usecases this isn't needed or wanted. OAuth will instead make your files accessible via the generated index for tinfoil only which leads to less issues overall.
+**NOTE:** It is recommend to use OAuth (`--tinfoil-auth-path` and `--tinfoil-auth`) over using the `--share-files` or `--share-folders` flags as this will make your files public accessible and in most usecases this isn't needed or wanted. OAuth will instead make your files accessible via the generated index for tinfoil only which leads to less issues overall.
 
 ## (Planned) Features
 
@@ -95,3 +107,9 @@ Flag | Description
 ### Error Handling
 
 - [ ] Retry gdrive exceptions
+
+
+## Similar Projects
+- [eXhumer/pyTinGen](https://github.com/eXhumer/pyTinGen)
+- [tinfoil_gdrive_generator](https://github.com/BigBrainAFK/tinfoil_gdrive_generator/)
+- [ownfoil](https://github.com/a1ex4/ownfoil)
