@@ -50,7 +50,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.lib }}_${{ matrix.target.arch }}
-                  path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil
+                  path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
 
     windows:
         name: Windows Build
@@ -85,7 +85,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
-                  path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil.exe
+                  path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli.exe
 
     macos:
       name: MacOS Build
@@ -120,4 +120,4 @@ jobs:
           uses: actions/upload-artifact@v2
           with:
             name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
-            path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil.exe
+            path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
