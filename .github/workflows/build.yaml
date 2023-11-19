@@ -46,7 +46,7 @@ jobs:
                   toolchain: stable
                   target: ${{ matrix.target.build_target }}
             - name: Install Build-Tools
-              run: sudo apt-get install build-essential gcc-multilib zstd musl-tools musl-dev gcc-aarch64-linux-gnu
+              run: sudo apt-get install build-essential gcc-multilib zstd musl-tools musl-dev
             - name: Build
               run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Action Artifact
@@ -54,6 +54,43 @@ jobs:
               with:
                   name: rustfoil_${{ runner.OS }}_${{ matrix.target.lib }}_${{ matrix.target.arch }}
                   path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
+
+
+    linux-arm:
+      name: Linux ARM Build
+      runs-on: ubuntu-latest
+      strategy:
+        matrix:
+          target:
+            - build_target: aarch64-unknown-linux-gnu
+              arch: arm64
+              lib: gnu
+      steps:
+        - name: Checkout Source code
+          uses: actions/checkout@v4
+        - name: Cache Rust dependencies
+          uses: actions/cache@v3
+          with:
+            path: |
+              ~/.cargo/registry
+              ~/.cargo/git
+              rustfoil-cli/target
+              rustfoil-lib/target
+            key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/**/Cargo.lock') }}
+        - name: Install Rust Toolchain
+          uses: dtolnay/rust-toolchain@master
+          with:
+            toolchain: stable
+            target: ${{ matrix.target.build_target }}
+        - name: Install Build-Tools
+          run: sudo apt-get install build-essential zstd gcc-aarch64-linux-gnu
+        - name: Build
+          run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
+        - name: Upload Action Artifact
+          uses: actions/upload-artifact@v3
+          with:
+            name: rustfoil_${{ runner.OS }}_${{ matrix.target.lib }}_${{ matrix.target.arch }}
+            path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
 
     windows:
         name: Windows Build
