@@ -113,7 +113,7 @@ jobs:
           uses: dtolnay/rust-toolchain@master
           with:
             toolchain: stable
-            target: ${{ matrix.target }}
+            target: ${{ matrix.target.build_target }}
         - name: Build
           run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
         - name: Upload Action Artifact
