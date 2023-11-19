@@ -16,24 +16,23 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout Source code
-              uses: actions/checkout@v2
+              uses: actions/checkout@v4
             - name: Create Conventional Changelog
               id: changelog
-              uses: TriPSs/conventional-changelog-action@v3
+              uses: TriPSs/conventional-changelog-action@v4
               with:
                   github-token: ${{ secrets.github_token }}
                   version-file: './rustfoil-cli/Cargo.toml'
                   version-path: "package.version"
             - name: Create Release
               id: create_release
-              uses: actions/create-release@v1
+              uses: softprops/action-gh-release@v1
               if: ${{ steps.changelog.outputs.skipped == 'false' }}
-              env:
-                  GITHUB_TOKEN: ${{ secrets.github_token }}
               with:
-                  tag_name: ${{ steps.changelog.outputs.tag }}
-                  release_name: ${{ steps.changelog.outputs.tag }}
-                  body: ${{ steps.changelog.outputs.clean_changelog }}
+                token: ${{ secrets.github_token }}
+                tag_name: ${{ steps.changelog.outputs.tag }}
+                name: ${{ steps.changelog.outputs.tag }}
+                body: ${{ steps.changelog.outputs.clean_changelog }}
 
     build_linux:
         name: Linux Build
@@ -53,39 +52,32 @@ jobs:
                       lib: musl
         steps:
             - name: Checkout Source code
-              uses: actions/checkout@v2
-              with:
-                  ref: "stable"
+              uses: actions/checkout@v4
             - name: Cache Rust dependencies
-              uses: actions/cache@v2
+              uses: actions/cache@v3
               with:
-                  path: |
-                      ~/.cargo/registry
-                      ~/.cargo/git
-                      target
-                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                path: |
+                  ~/.cargo/registry
+                  ~/.cargo/git
+                  rustfoil-cli/target
+                  rustfoil-lib/target
+                key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/**/Cargo.lock') }}
             - name: Install Rust Toolchain
-              uses: actions-rs/toolchain@v1
+              uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: stable
-                  target: ${{ matrix.target.build_target }}
-                  override: true
+                toolchain: stable
+                target: ${{ matrix.target.build_target }}
             - name: Install Build-Tools
-              run: sudo apt-get install build-essential gcc-multilib
+              run: sudo apt-get install build-essential gcc-multilib zstd musl-tools musl-dev
             - name: Build
-              uses: actions-rs/cargo@v1
-              env:
-                  TARGET_CC: clang
-              with:
-                  command: build
-                  args: --release --target=${{ matrix.target.build_target }}
+              run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Release Asset
               uses: actions/upload-release-asset@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ needs.changelog.outputs.upload_url }}
-                  asset_path: target/${{ matrix.target.build_target }}/release/rustfoil
+                  asset_path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
                   asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.lib }}_${{ matrix.target.arch }}
                   asset_content_type: application/x-elf
 
@@ -102,34 +94,71 @@ jobs:
                       arch: x64
         steps:
             - name: Checkout Source code
-              uses: actions/checkout@v2
+              uses: actions/checkout@4
               with:
                   ref: "stable"
             - name: Cache Rust dependencies
-              uses: actions/cache@v2
+              uses: actions/cache@v3
               with:
-                  path: |
-                      ~/.cargo/registry
-                      ~/.cargo/git
-                      target
-                  key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+                path: |
+                  ~/.cargo/registry
+                  ~/.cargo/git
+                  rustfoil-cli/target
+                  rustfoil-lib/target
+                key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/**/Cargo.lock') }}
             - name: Install Rust Toolchain
-              uses: actions-rs/toolchain@v1
+              uses: dtolnay/rust-toolchain@master
               with:
-                  toolchain: stable
-                  target: ${{ matrix.target.build_target }}
-                  override: true
+                toolchain: stable
+                target: ${{ matrix.target.build_target }}
             - name: Build
-              uses: actions-rs/cargo@v1
-              with:
-                  command: build
-                  args: --release --target=${{ matrix.target.build_target }}
+              run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
             - name: Upload Release Asset
               uses: actions/upload-release-asset@v1
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               with:
                   upload_url: ${{ needs.changelog.outputs.upload_url }}
-                  asset_path: target/${{ matrix.target.build_target }}/release/rustfoil.exe
+                  asset_path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli.exe
                   asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}.exe
                   asset_content_type: application/x-msdownload
+
+    build_macos:
+      name: MacOS Build
+      runs-on: macos-latest
+      needs: changelog
+      strategy:
+        matrix:
+          target:
+            - build_target: x86_64-apple-darwin
+              arch: x64
+            - build_target: aarch64-apple-darwin
+              arch: aarch64
+      steps:
+        - name: Checkout Source code
+          uses: actions/checkout@v4
+        - name: Cache Rust dependencies
+          uses: actions/cache@v3
+          with:
+            path: |
+              ~/.cargo/registry
+              ~/.cargo/git
+              rustfoil-cli/target
+              rustfoil-lib/target
+            key: ${{ matrix.target.build_target }}-cargo-${{ hashFiles('**/**/Cargo.lock') }}
+        - name: Install Rust Toolchain
+          uses: dtolnay/rust-toolchain@master
+          with:
+            toolchain: stable
+            target: ${{ matrix.target.build_target }}
+        - name: Build
+          run: cd rustfoil-cli && cargo build --release --target=${{ matrix.target.build_target }}
+        - name: Upload Release Asset
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ needs.changelog.outputs.upload_url }}
+            asset_path: rustfoil-cli/target/${{ matrix.target.build_target }}/release/rustfoil-cli
+            asset_name: rustfoil_${{ runner.OS }}_${{ matrix.target.arch }}
+            asset_content_type: application/x-elf
