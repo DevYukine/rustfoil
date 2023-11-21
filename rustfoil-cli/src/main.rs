@@ -198,9 +198,13 @@ where
     debug!("{} of {} passed filters", filtered.len(), file_count);
 
     let index = tinfoil_service.generate_index(
-        &filtered,
+        Some(&filtered),
+        None,
         command.success(),
         command.referrer(),
+        command.google_api_key(),
+        None,
+        command.headers(),
         command.min_version(),
         command.theme_blacklist(),
         command.theme_whitelist(),

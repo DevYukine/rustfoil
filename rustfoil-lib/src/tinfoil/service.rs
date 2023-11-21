@@ -15,9 +15,13 @@ impl TinfoilService {
 
     pub fn generate_index<F>(
         &self,
-        files: &Vec<F>,
+        files: Option<&Vec<F>>,
+        directories: Option<Vec<String>>,
         success: Option<String>,
         referrer: Option<String>,
+        google_api_key: Option<String>,
+        oneficher_api_keys: Option<Vec<String>>,
+        headers: Option<Vec<String>>,
         min_version: Option<f32>,
         theme_blacklist: Option<Vec<String>>,
         theme_whitelist: Option<Vec<String>>,
@@ -28,19 +32,25 @@ impl TinfoilService {
     {
         let mut index = TinfoilIndex::new();
 
-        index.files = Some(Vec::new());
+        if let Some(files) = files {
+            index.files = Some(Vec::new());
 
-        for file in files {
-            let tinfoil_file = TinfoilFile {
-                url: file.get_url(),
-                size: file.get_size(),
-            };
+            for file in files {
+                let tinfoil_file = TinfoilFile {
+                    url: file.get_url(),
+                    size: file.get_size(),
+                };
 
-            index.add_file(tinfoil_file);
+                index.add_file(tinfoil_file);
+            }
         }
 
+        index.directories = directories;
         index.success = success;
         index.referrer = referrer;
+        index.google_api_key = google_api_key;
+        index.one_fichier_keys = oneficher_api_keys;
+        index.headers = headers;
         index.version = min_version;
         index.theme_black_list = theme_blacklist;
         index.theme_white_list = theme_whitelist;

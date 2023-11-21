@@ -28,6 +28,8 @@ pub trait IndexCommand {
     fn public_key(&self) -> Option<PathBuf>;
     fn success(&self) -> Option<String>;
     fn referrer(&self) -> Option<String>;
+    fn google_api_key(&self) -> Option<String>;
+    fn headers(&self) -> Option<Vec<String>>;
     fn min_version(&self) -> Option<f32>;
     fn theme_blacklist(&self) -> Option<Vec<String>>;
     fn theme_whitelist(&self) -> Option<Vec<String>>;
@@ -74,6 +76,14 @@ pub struct GoogleDriveCommand {
     /// Adds a success message to index file to show if index is successfully read by Tinfoil
     #[arg(long)]
     pub referrer: Option<String>,
+
+    /// Google API Key to use for Google Drive API requests, this is not the same as OAuth!
+    #[arg(long)]
+    pub google_api_key: Option<String>,
+
+    /// specified custom HTTP headers which should be sent by tinfoil requests
+    #[arg(long)]
+    pub headers: Option<Vec<String>>,
 
     /// Adds a minimum Tinfoil version to load the index
     #[arg(long)]
@@ -176,6 +186,10 @@ pub struct HttpCommand {
     #[arg(long)]
     pub referrer: Option<String>,
 
+    /// specified custom HTTP headers which should be sent by tinfoil requests
+    #[arg(long)]
+    pub headers: Option<Vec<String>>,
+
     /// Adds a minimum Tinfoil version to load the index
     #[arg(long)]
     pub min_version: Option<f32>,
@@ -230,6 +244,14 @@ impl IndexCommand for GoogleDriveCommand {
         self.referrer.clone()
     }
 
+    fn google_api_key(&self) -> Option<String> {
+        self.google_api_key.clone()
+    }
+
+    fn headers(&self) -> Option<Vec<String>> {
+        self.headers.clone()
+    }
+
     fn min_version(&self) -> Option<f32> {
         self.min_version
     }
@@ -282,6 +304,14 @@ impl IndexCommand for HttpCommand {
 
     fn referrer(&self) -> Option<String> {
         self.referrer.clone()
+    }
+
+    fn google_api_key(&self) -> Option<String> {
+        None
+    }
+
+    fn headers(&self) -> Option<Vec<String>> {
+        self.headers.clone()
     }
 
     fn min_version(&self) -> Option<f32> {
