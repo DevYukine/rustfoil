@@ -2,6 +2,7 @@ use crate::abstraction::file::TinfoilFileLike;
 use crate::fs::file::LocalFile;
 use std::path::PathBuf;
 
+#[derive(Debug, Clone)]
 pub struct HttpFile {
     pub url: String,
     pub size: i64,

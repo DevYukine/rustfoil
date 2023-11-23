@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::skip_serializing_none;
 
 #[skip_serializing_none]
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TinfoilIndex {
     pub files: Option<Vec<TinfoilFile>>,
@@ -21,20 +21,20 @@ pub struct TinfoilIndex {
     pub locations: Option<Vec<TinfoilLocation>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TinfoilFile {
     pub url: String,
     pub size: i64,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TinfoilLocation {
     pub url: String,
     pub title: String,
     pub action: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TinfoilToken {
     pub access_token: String,
     pub refresh_token: String,

@@ -3,6 +3,7 @@ use async_recursion::async_recursion;
 use std::path::PathBuf;
 use tokio::fs;
 
+#[derive(Debug, Clone)]
 pub struct LocalFile {
     pub path: PathBuf,
     pub size: u64,

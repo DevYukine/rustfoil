@@ -11,24 +11,24 @@ pub struct GoogleDriveFileInfo {
     pub shared: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GoogleDriveFolderInfo {
     pub id: String,
     pub shared: bool,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GoogleDriveScanResult {
     pub files: Vec<GoogleDriveFileInfo>,
     pub folders: Vec<GoogleDriveFolderInfo>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDriveTokenInfo {
     pub token: GoogleDriveToken,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GoogleDriveToken {
     pub access_token: String,
     pub refresh_token: String,
