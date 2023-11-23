@@ -2,7 +2,7 @@ use crate::abstraction::file::TinfoilFileLike;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-static NSW_EXTENSIONS: [&str; 4] = [".nsp", ".nsz", ".xci", ".xcz"];
+pub static NSW_EXTENSIONS: [&str; 4] = [".nsp", ".nsz", ".xci", ".xcz"];
 
 pub fn filter_files<T>(
     files: Vec<T>,
